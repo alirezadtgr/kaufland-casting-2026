@@ -324,6 +324,63 @@
     transition: background .15s;
   }
   .lightbox-close:hover { background: rgba(0,0,0,.8); }
+  .lb-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0,0,0,.45);
+    color: #fff;
+    border: none;
+    font-size: 26px;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: background .15s;
+  }
+  .lb-nav:hover { background: rgba(0,0,0,.75); }
+  .lb-prev { left: 10px; }
+  .lb-next { right: 10px; }
+  .lb-nav.hidden { display: none; }
+  .lb-counter {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,.5);
+    color: #fff;
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 10px;
+    pointer-events: none;
+  }
+  .lb-thumbs {
+    display: flex;
+    gap: 4px;
+    padding: 8px 10px;
+    overflow-x: auto;
+    background: #111;
+    scrollbar-width: thin;
+    scrollbar-color: #444 #111;
+  }
+  .lb-thumbs::-webkit-scrollbar { height: 4px; }
+  .lb-thumbs::-webkit-scrollbar-thumb { background: #444; border-radius: 2px; }
+  .lb-thumb {
+    width: 46px;
+    height: 62px;
+    object-fit: cover;
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: .5;
+    transition: opacity .15s;
+    border: 2px solid transparent;
+    flex-shrink: 0;
+  }
+  .lb-thumb:hover { opacity: .8; }
+  .lb-thumb.active { opacity: 1; border-color: #fff; }
   .lightbox-img-wrap {
     width: 100%;
     padding-top: 150%;
@@ -757,7 +814,11 @@
     <div class="lightbox-img-wrap">
       <img id="lbImg" src="" alt="">
       <div class="lightbox-initials" id="lbInitials"></div>
+      <button class="lb-nav lb-prev hidden" id="lbPrev" onclick="lbNav(-1)">&#8249;</button>
+      <button class="lb-nav lb-next hidden" id="lbNext" onclick="lbNav(1)">&#8250;</button>
+      <div class="lb-counter hidden" id="lbCounter"></div>
     </div>
+    <div class="lb-thumbs hidden" id="lbThumbs"></div>
     <div class="lightbox-meta">
       <div class="lightbox-name" id="lbName"></div>
       <div class="lightbox-agency" id="lbAgency"></div>
@@ -788,104 +849,104 @@
 // DATA
 // ══════════════════════════════════════
 const selects = [
-  {name:"ALEKS",folder:"ALEKS",agency:"M4 Models",scene:"s2"},
-  {name:"Aaron Breyer",folder:"Aaron_Breyer",agency:"Fangfrisch Berlin",scene:"s2"},
-  {name:"Akke Visschers",folder:"Akke_Visschers",agency:"Unknown Agency",scene:"s1"},
-  {name:"Alba",folder:"Alba",agency:"Splendide Models",scene:"s1"},
-  {name:"Alessija",folder:"Alessija",agency:"Splendide Models",scene:"s1"},
-  {name:"Alex Daff",folder:"Alex_Daff",agency:"Fangfrisch Berlin",scene:"s1"},
-  {name:"Alexander Bonnet",folder:"Alexander_Bonnet",agency:"Fangfrisch Berlin",scene:"s1"},
-  {name:"Amelie Zappe",folder:"Amelie_Zappe",agency:"Fangfrisch Berlin",scene:"s1"},
-  {name:"Amon Sander Seidler",folder:"Amon_Sander_Seidler",agency:"Fangfrisch Berlin",scene:"s1"},
-  {name:"Anamika Datta",folder:"Anamika_Datta",agency:"Fangfrisch Berlin",scene:"s1"},
-  {name:"Angelo",folder:"Angelo",agency:"Fangfrisch Berlin",scene:"s1"},
-  {name:"Angelo-f",folder:"Angelo-f",agency:"Fangfrisch Berlin",scene:"s1"},
-  {name:"Anil",folder:"Anil",agency:"Splendide Models",scene:"s3"},
-  {name:"Anna Jensen",folder:"Anna_Jensen",agency:"Fangfrisch Berlin",scene:"s4"},
-  {name:"Annabel Karmelk",folder:"Annabel_Karmelk",agency:"Fangfrisch Berlin",scene:"s1"},
-  {name:"Anne Sophie Pied",folder:"Anne_Sophie_Pied",agency:"Splendide Models",scene:"s1"},
-  {name:"Anton Wiegand",folder:"Anton_Wiegand",agency:"Fangfrisch Berlin",scene:"s3"},
-  {name:"Antonia Langenohl",folder:"Antonia_Langenohl",agency:"Fangfrisch Berlin",scene:"s1"},
-  {name:"Antonia Schone",folder:"Antonia_Schone",agency:"Fangfrisch Berlin",scene:"s3"},
-  {name:"BASTIAN",folder:"BASTIAN",agency:"M4 Models",scene:"s3"},
-  {name:"Beate Funke",folder:"Beate_Funke",agency:"Fangfrisch Berlin",scene:"s4"},
-  {name:"Beatrice",folder:"Beatrice",agency:"Smiling Models",scene:"s3"},
-  {name:"Benjamin Knaak",folder:"Benjamin_Knaak",agency:"Fangfrisch Berlin",scene:"s3"},
-  {name:"Benjamin Orlando",folder:"Benjamin_Orlando",agency:"Unknown Agency",scene:"s2"},
-  {name:"Birgit Von Moller",folder:"Birgit_Von_Moller",agency:"Fangfrisch Berlin",scene:"s4"},
-  {name:"Carlo Klingler",folder:"Carlo_Klingler",agency:"Fangfrisch Berlin",scene:"s1"},
-  {name:"Cecile Courouble",folder:"Cecile_Courouble",agency:"Fangfrisch Berlin",scene:"s1"},
-  {name:"Chiara Noack",folder:"Chiara_Noack",agency:"Fangfrisch Berlin",scene:"s1"},
-  {name:"Christopher Schmidt",folder:"Christopher_Schmidt",agency:"Fangfrisch Berlin",scene:"s4"},
-  {name:"Coco Weber",folder:"Coco_Weber",agency:"Fangfrisch Berlin",scene:"s1"},
-  {name:"Cyrille Eenshuistra",folder:"Cyrille_Eenshuistra",agency:"Fangfrisch Berlin",scene:"s4"},
-  {name:"Dennis Beltchikov",folder:"Dennis_Beltchikov",agency:"Fangfrisch Berlin",scene:"s2"},
-  {name:"Elisa",folder:"Elisa",agency:"Splendide Models",scene:"s2"},
-  {name:"Fabiana Bogiatzoglou",folder:"Fabiana_Bogiatzoglou",agency:"Fangfrisch Berlin",scene:"s2"},
-  {name:"Fabienne Stera",folder:"Fabienne_Stera",agency:"Fangfrisch Berlin",scene:"s2"},
-  {name:"Felix Rahmer",folder:"Felix_Rahmer",agency:"Fangfrisch Berlin",scene:"s2"},
-  {name:"Gerd Welkisch",folder:"Gerd_Welkisch",agency:"Fangfrisch Berlin",scene:"s4"},
-  {name:"Harald Schindel",folder:"Harald_Schindel",agency:"Fangfrisch Berlin",scene:"s4"},
-  {name:"Ilona Malganova",folder:"Ilona_Malganova",agency:"Fangfrisch Berlin",scene:"s3"},
-  {name:"Ines Bartholomaus",folder:"Ines_Bartholomaus",agency:"Fangfrisch Berlin",scene:"s4"},
-  {name:"Jakob",folder:"Jakob",agency:"Splendide Models",scene:"s1"},
-  {name:"Jameela",folder:"Jameela",agency:"Unknown Agency",scene:"s4"},
-  {name:"Janin Torzewski",folder:"Janin_Torzewski",agency:"Splendide Models",scene:"s3"},
-  {name:"Jasmin",folder:"Jasmin",agency:"Splendide Models",scene:"s4"},
-  {name:"Joachim Jasiek",folder:"Joachim_Jasiek",agency:"Fangfrisch Berlin",scene:"s4"},
-  {name:"Jozsef Levai",folder:"Jozsef_Levai",agency:"Fangfrisch Berlin",scene:"s1"},
-  {name:"Jurgen Fath",folder:"Jurgen_Fath",agency:"Fangfrisch Berlin",scene:"s4"},
-  {name:"Kallin Mueller",folder:"Kallin_Mueller",agency:"Unknown Agency",scene:"s2"},
-  {name:"Konrad Abramowski",folder:"Konrad_Abramowski",agency:"Fangfrisch Berlin",scene:"s2"},
-  {name:"LAURENZ ZIMMERMANN",folder:"LAURENZ_ZIMMERMANN",agency:"Fangfrisch Berlin",scene:"s2"},
-  {name:"LESLIE",folder:"LESLIE",agency:"M4 Models",scene:"s3"},
-  {name:"Lasse Dressler",folder:"Lasse_Dressler",agency:"Fangfrisch Berlin",scene:"s2"},
-  {name:"Lea Wolfram",folder:"Lea_Wolfram",agency:"Unknown Agency",scene:"s2"},
-  {name:"Leo",folder:"Leo",agency:"Splendide Models",scene:"s3"},
-  {name:"Leonard",folder:"Leonard",agency:"Splendide Models",scene:"s3"},
-  {name:"Lina Wetjen",folder:"Lina_Wetjen",agency:"Fangfrisch Berlin",scene:"s1"},
-  {name:"Liv",folder:"Liv",agency:"Splendide Models",scene:"s1"},
-  {name:"Liv Salvisberg",folder:"Liv_Salvisberg",agency:"Unknown Agency",scene:"s2"},
-  {name:"Lore Lotte Peter",folder:"Lore_Lotte_Peter",agency:"Fangfrisch Berlin",scene:"s3"},
-  {name:"Louis Braun",folder:"Louis_Braun",agency:"Fangfrisch Berlin",scene:"s2"},
-  {name:"Louis Wiener",folder:"Louis_Wiener",agency:"Fangfrisch Berlin",scene:"s3"},
-  {name:"Luca St",folder:"Luca_St",agency:"Splendide Models",scene:"s3"},
-  {name:"Lucas Avid Hubner",folder:"Lucas_Avid_Hubner",agency:"Fangfrisch Berlin",scene:"s3"},
-  {name:"Luisa-f",folder:"Luisa-f",agency:"Fangfrisch Berlin",scene:"s3"},
-  {name:"Luke Schafer",folder:"Luke_Schafer",agency:"Fangfrisch Berlin",scene:"s3"},
-  {name:"MARCUS ZIERKE",folder:"MARCUS_ZIERKE",agency:"Splendide Models",scene:"s1"},
-  {name:"Marc Soellinger",folder:"Marc_Soellinger",agency:"Unknown Agency",scene:"s1"},
-  {name:"Marie Mai",folder:"Marie_Mai",agency:"Splendide Models",scene:"s2"},
-  {name:"Marq",folder:"Marq",agency:"Smiling Models",scene:"s3"},
-  {name:"Martin",folder:"Martin",agency:"Smiling Models",scene:"s2"},
-  {name:"Marvin Hug",folder:"Marvin_Hug",agency:"Fangfrisch Berlin",scene:"s1"},
-  {name:"Mathilda Bordfeld",folder:"Mathilda_Bordfeld",agency:"Fangfrisch Berlin",scene:"s3"},
-  {name:"Maxine Riewe",folder:"Maxine_Riewe",agency:"Splendide Models",scene:"s1"},
-  {name:"Millicint Hayes",folder:"Millicint_Hayes",agency:"Fangfrisch Berlin",scene:"s3"},
-  {name:"Monika Stenzel",folder:"Monika_Stenzel",agency:"Fangfrisch Berlin",scene:"s4"},
-  {name:"Nazar Zhmuro",folder:"Nazar_Zhmuro",agency:"Unknown Agency",scene:"s3"},
-  {name:"Nele Luisa",folder:"Nele_Luisa",agency:"Unknown Agency",scene:"s2"},
-  {name:"Nina Julia",folder:"Nina_Julia",agency:"Unknown Agency",scene:"s2"},
-  {name:"Otis Hagen",folder:"Otis_Hagen",agency:"Fangfrisch Berlin",scene:"s4"},
-  {name:"Patrick",folder:"Patrick",agency:"Smiling Models",scene:"s1"},
-  {name:"Paula Breuer",folder:"Paula_Breuer",agency:"Unknown Agency",scene:"s3"},
-  {name:"Pegah",folder:"Pegah",agency:"Splendide Models",scene:"s1"},
-  {name:"Perry Frenzel",folder:"Perry_Frenzel",agency:"Unknown Agency",scene:"s2"},
-  {name:"Pit",folder:"Pit",agency:"Splendide Models",scene:"s3"},
-  {name:"Rabia",folder:"Rabia",agency:"Splendide Models",scene:"s4"},
-  {name:"Rachel",folder:"Rachel",agency:"Splendide Models",scene:"s2"},
-  {name:"Rosalie",folder:"Rosalie",agency:"Splendide Models",scene:"s2"},
-  {name:"SAORI",folder:"SAORI",agency:"M4 Models",scene:"s1"},
-  {name:"Selina Schaper",folder:"Selina_Schaper",agency:"Fangfrisch Berlin",scene:"s1"},
-  {name:"Sen Br Cker",folder:"Sen_Br_Cker",agency:"Unknown Agency",scene:"s3"},
-  {name:"Simone Muller Pradella",folder:"Simone_Muller_Pradella",agency:"Fangfrisch Berlin",scene:"s1"},
-  {name:"Stefan Wachsmuth",folder:"Stefan_Wachsmuth",agency:"Fangfrisch Berlin",scene:"s1"},
-  {name:"Susanne Jo",folder:"Susanne_Jo",agency:"Splendide Models",scene:"s4"},
-  {name:"Valan Sharp",folder:"Valan_Sharp",agency:"Fangfrisch Berlin",scene:"s1"},
-  {name:"viva serviceagentur gmbh (1)",folder:"viva_serviceagentur_gmbh_(1)",agency:"Viva Serviceagentur",scene:"s1"},
-  {name:"viva serviceagentur gmbh (10)",folder:"viva_serviceagentur_gmbh_(10)",agency:"Viva Serviceagentur",scene:"s1"},
-  {name:"viva serviceagentur gmbh (4)",folder:"viva_serviceagentur_gmbh_(4)",agency:"Viva Serviceagentur",scene:"s3"},
-  {name:"viva serviceagentur gmbh (6)",folder:"viva_serviceagentur_gmbh_(6)",agency:"Viva Serviceagentur",scene:"s4"},
+  {name:"ALEKS",folder:"ALEKS",agency:"M4 Models",scene:"s2",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Aaron Breyer",folder:"Aaron_Breyer",agency:"Fangfrisch Berlin",scene:"s2",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Akke Visschers",folder:"Akke_Visschers",agency:"Unknown Agency",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Alba",folder:"Alba",agency:"Splendide Models",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg"]},
+  {name:"Alessija",folder:"Alessija",agency:"Splendide Models",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg"]},
+  {name:"Alex Daff",folder:"Alex_Daff",agency:"Fangfrisch Berlin",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Alexander Bonnet",folder:"Alexander_Bonnet",agency:"Fangfrisch Berlin",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Amelie Zappe",folder:"Amelie_Zappe",agency:"Fangfrisch Berlin",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Amon Sander Seidler",folder:"Amon_Sander_Seidler",agency:"Fangfrisch Berlin",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Anamika Datta",folder:"Anamika_Datta",agency:"Fangfrisch Berlin",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Angelo",folder:"Angelo",agency:"Fangfrisch Berlin",scene:"s1",images:["headshot.jpg"]},
+  {name:"Angelo-f",folder:"Angelo-f",agency:"Fangfrisch Berlin",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Anil",folder:"Anil",agency:"Splendide Models",scene:"s3",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg"]},
+  {name:"Anna Jensen",folder:"Anna_Jensen",agency:"Fangfrisch Berlin",scene:"s4",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Annabel Karmelk",folder:"Annabel_Karmelk",agency:"Fangfrisch Berlin",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Anne Sophie Pied",folder:"Anne_Sophie_Pied",agency:"Splendide Models",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Anton Wiegand",folder:"Anton_Wiegand",agency:"Fangfrisch Berlin",scene:"s3",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Antonia Langenohl",folder:"Antonia_Langenohl",agency:"Fangfrisch Berlin",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Antonia Schone",folder:"Antonia_Schone",agency:"Fangfrisch Berlin",scene:"s3",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"BASTIAN",folder:"BASTIAN",agency:"M4 Models",scene:"s3",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Beate Funke",folder:"Beate_Funke",agency:"Fangfrisch Berlin",scene:"s4",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Beatrice",folder:"Beatrice",agency:"Smiling Models",scene:"s3",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Benjamin Knaak",folder:"Benjamin_Knaak",agency:"Fangfrisch Berlin",scene:"s3",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Benjamin Orlando",folder:"Benjamin_Orlando",agency:"Unknown Agency",scene:"s2",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Birgit Von Moller",folder:"Birgit_Von_Moller",agency:"Fangfrisch Berlin",scene:"s4",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Carlo Klingler",folder:"Carlo_Klingler",agency:"Fangfrisch Berlin",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Cecile Courouble",folder:"Cecile_Courouble",agency:"Fangfrisch Berlin",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Chiara Noack",folder:"Chiara_Noack",agency:"Fangfrisch Berlin",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Christopher Schmidt",folder:"Christopher_Schmidt",agency:"Fangfrisch Berlin",scene:"s4",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Coco Weber",folder:"Coco_Weber",agency:"Fangfrisch Berlin",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Cyrille Eenshuistra",folder:"Cyrille_Eenshuistra",agency:"Fangfrisch Berlin",scene:"s4",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Dennis Beltchikov",folder:"Dennis_Beltchikov",agency:"Fangfrisch Berlin",scene:"s2",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Elisa",folder:"Elisa",agency:"Splendide Models",scene:"s2",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg"]},
+  {name:"Fabiana Bogiatzoglou",folder:"Fabiana_Bogiatzoglou",agency:"Fangfrisch Berlin",scene:"s2",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Fabienne Stera",folder:"Fabienne_Stera",agency:"Fangfrisch Berlin",scene:"s2",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Felix Rahmer",folder:"Felix_Rahmer",agency:"Fangfrisch Berlin",scene:"s2",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Gerd Welkisch",folder:"Gerd_Welkisch",agency:"Fangfrisch Berlin",scene:"s4",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Harald Schindel",folder:"Harald_Schindel",agency:"Fangfrisch Berlin",scene:"s4",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Ilona Malganova",folder:"Ilona_Malganova",agency:"Fangfrisch Berlin",scene:"s3",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Ines Bartholomaus",folder:"Ines_Bartholomaus",agency:"Fangfrisch Berlin",scene:"s4",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Jakob",folder:"Jakob",agency:"Splendide Models",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg"]},
+  {name:"Jameela",folder:"Jameela",agency:"Unknown Agency",scene:"s4",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Janin Torzewski",folder:"Janin_Torzewski",agency:"Splendide Models",scene:"s3",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Jasmin",folder:"Jasmin",agency:"Splendide Models",scene:"s4",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Joachim Jasiek",folder:"Joachim_Jasiek",agency:"Fangfrisch Berlin",scene:"s4",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Jozsef Levai",folder:"Jozsef_Levai",agency:"Fangfrisch Berlin",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Jurgen Fath",folder:"Jurgen_Fath",agency:"Fangfrisch Berlin",scene:"s4",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Kallin Mueller",folder:"Kallin_Mueller",agency:"Unknown Agency",scene:"s2",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Konrad Abramowski",folder:"Konrad_Abramowski",agency:"Fangfrisch Berlin",scene:"s2",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"LAURENZ ZIMMERMANN",folder:"LAURENZ_ZIMMERMANN",agency:"Fangfrisch Berlin",scene:"s2",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"LESLIE",folder:"LESLIE",agency:"M4 Models",scene:"s3",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Lasse Dressler",folder:"Lasse_Dressler",agency:"Fangfrisch Berlin",scene:"s2",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Lea Wolfram",folder:"Lea_Wolfram",agency:"Unknown Agency",scene:"s2",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Leo",folder:"Leo",agency:"Splendide Models",scene:"s3",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Leonard",folder:"Leonard",agency:"Splendide Models",scene:"s3",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Lina Wetjen",folder:"Lina_Wetjen",agency:"Fangfrisch Berlin",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Liv",folder:"Liv",agency:"Splendide Models",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg"]},
+  {name:"Liv Salvisberg",folder:"Liv_Salvisberg",agency:"Unknown Agency",scene:"s2",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Lore Lotte Peter",folder:"Lore_Lotte_Peter",agency:"Fangfrisch Berlin",scene:"s3",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Louis Braun",folder:"Louis_Braun",agency:"Fangfrisch Berlin",scene:"s2",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Louis Wiener",folder:"Louis_Wiener",agency:"Fangfrisch Berlin",scene:"s3",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Luca St",folder:"Luca_St",agency:"Splendide Models",scene:"s3",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg"]},
+  {name:"Lucas Avid Hubner",folder:"Lucas_Avid_Hubner",agency:"Fangfrisch Berlin",scene:"s3",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Luisa-f",folder:"Luisa-f",agency:"Fangfrisch Berlin",scene:"s3",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Luke Schafer",folder:"Luke_Schafer",agency:"Fangfrisch Berlin",scene:"s3",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"MARCUS ZIERKE",folder:"MARCUS_ZIERKE",agency:"Splendide Models",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Marc Soellinger",folder:"Marc_Soellinger",agency:"Unknown Agency",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Marie Mai",folder:"Marie_Mai",agency:"Splendide Models",scene:"s2",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Marq",folder:"Marq",agency:"Smiling Models",scene:"s3",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Martin",folder:"Martin",agency:"Smiling Models",scene:"s2",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Marvin Hug",folder:"Marvin_Hug",agency:"Fangfrisch Berlin",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Mathilda Bordfeld",folder:"Mathilda_Bordfeld",agency:"Fangfrisch Berlin",scene:"s3",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Maxine Riewe",folder:"Maxine_Riewe",agency:"Splendide Models",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Millicint Hayes",folder:"Millicint_Hayes",agency:"Fangfrisch Berlin",scene:"s3",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Monika Stenzel",folder:"Monika_Stenzel",agency:"Fangfrisch Berlin",scene:"s4",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Nazar Zhmuro",folder:"Nazar_Zhmuro",agency:"Unknown Agency",scene:"s3",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg"]},
+  {name:"Nele Luisa",folder:"Nele_Luisa",agency:"Unknown Agency",scene:"s2",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Nina Julia",folder:"Nina_Julia",agency:"Unknown Agency",scene:"s2",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Otis Hagen",folder:"Otis_Hagen",agency:"Fangfrisch Berlin",scene:"s4",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Patrick",folder:"Patrick",agency:"Smiling Models",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Paula Breuer",folder:"Paula_Breuer",agency:"Unknown Agency",scene:"s3",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Pegah",folder:"Pegah",agency:"Splendide Models",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Perry Frenzel",folder:"Perry_Frenzel",agency:"Unknown Agency",scene:"s2",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Pit",folder:"Pit",agency:"Splendide Models",scene:"s3",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Rabia",folder:"Rabia",agency:"Splendide Models",scene:"s4",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Rachel",folder:"Rachel",agency:"Splendide Models",scene:"s2",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Rosalie",folder:"Rosalie",agency:"Splendide Models",scene:"s2",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg"]},
+  {name:"SAORI",folder:"SAORI",agency:"M4 Models",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Selina Schaper",folder:"Selina_Schaper",agency:"Fangfrisch Berlin",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Sen Br Cker",folder:"Sen_Br_Cker",agency:"Unknown Agency",scene:"s3",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Simone Muller Pradella",folder:"Simone_Muller_Pradella",agency:"Fangfrisch Berlin",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Stefan Wachsmuth",folder:"Stefan_Wachsmuth",agency:"Fangfrisch Berlin",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Susanne Jo",folder:"Susanne_Jo",agency:"Splendide Models",scene:"s4",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"Valan Sharp",folder:"Valan_Sharp",agency:"Fangfrisch Berlin",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"viva serviceagentur gmbh (1)",folder:"viva_serviceagentur_gmbh_(1)",agency:"Viva Serviceagentur",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"viva serviceagentur gmbh (10)",folder:"viva_serviceagentur_gmbh_(10)",agency:"Viva Serviceagentur",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"viva serviceagentur gmbh (4)",folder:"viva_serviceagentur_gmbh_(4)",agency:"Viva Serviceagentur",scene:"s3",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
+  {name:"viva serviceagentur gmbh (6)",folder:"viva_serviceagentur_gmbh_(6)",agency:"Viva Serviceagentur",scene:"s4",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
 ];
 
 const sceneInfo = {
@@ -1063,26 +1124,78 @@ function renderGrid() {
 // ══════════════════════════════════════
 // LIGHTBOX
 // ══════════════════════════════════════
+let lbImages = [], lbIdx = 0;
+
 function openLightbox(c) {
-  const imgSrc = `casting_images/${c.folder}/headshot.jpg`;
+  lbImages = c.images && c.images.length ? c.images : ['headshot.jpg'];
+  lbIdx = 0;
   const scene = sceneInfo[c.scene];
-  const img = document.getElementById('lbImg');
-  img.src = imgSrc;
-  img.style.display = 'block';
-  const lbInit = document.getElementById('lbInitials');
-  lbInit.style.display = 'none';
-  lbInit.textContent = getInitials(c.name);
-  img.onerror = function() {
-    img.style.display = 'none';
-    lbInit.style.display = 'flex';
-  };
   document.getElementById('lbName').textContent = c.name;
   document.getElementById('lbAgency').textContent = c.agency;
   const badge = document.getElementById('lbBadge');
   badge.textContent = scene.label;
   badge.className = `scene-badge ${c.scene}`;
+  // Build thumbs
+  const thumbsEl = document.getElementById('lbThumbs');
+  thumbsEl.innerHTML = '';
+  if (lbImages.length > 1) {
+    lbImages.forEach((img, i) => {
+      const th = document.createElement('img');
+      th.src = `casting_images/${c.folder}/${img}`;
+      th.className = 'lb-thumb' + (i === 0 ? ' active' : '');
+      th.onclick = () => lbShowImg(c.folder, i);
+      thumbsEl.appendChild(th);
+    });
+    thumbsEl.classList.remove('hidden');
+  } else {
+    thumbsEl.classList.add('hidden');
+  }
+  document.getElementById('lightboxOverlay').dataset.folder = c.folder;
+  lbShowImg(c.folder, 0);
   document.getElementById('lightboxOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
+}
+
+function lbShowImg(folder, idx) {
+  lbIdx = idx;
+  const imgFile = lbImages[idx];
+  const img = document.getElementById('lbImg');
+  const lbInit = document.getElementById('lbInitials');
+  img.style.display = 'block';
+  lbInit.style.display = 'none';
+  img.src = `casting_images/${folder}/${imgFile}`;
+  img.onerror = function() {
+    img.style.display = 'none';
+    lbInit.style.display = 'flex';
+  };
+  // counter
+  const counter = document.getElementById('lbCounter');
+  if (lbImages.length > 1) {
+    counter.textContent = `${idx + 1} / ${lbImages.length}`;
+    counter.classList.remove('hidden');
+  } else {
+    counter.classList.add('hidden');
+  }
+  // nav
+  const prev = document.getElementById('lbPrev');
+  const next = document.getElementById('lbNext');
+  if (lbImages.length > 1) {
+    prev.classList.toggle('hidden', idx === 0);
+    next.classList.toggle('hidden', idx === lbImages.length - 1);
+  } else {
+    prev.classList.add('hidden');
+    next.classList.add('hidden');
+  }
+  // thumbs highlight
+  document.querySelectorAll('.lb-thumb').forEach((th, i) => {
+    th.classList.toggle('active', i === idx);
+  });
+}
+
+function lbNav(dir) {
+  const folder = document.getElementById('lightboxOverlay').dataset.folder;
+  const newIdx = Math.max(0, Math.min(lbImages.length - 1, lbIdx + dir));
+  lbShowImg(folder, newIdx);
 }
 
 function closeLightbox() {
@@ -1098,6 +1211,10 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     closeLightbox();
     closeAgencyModal();
+  }
+  if (document.getElementById('lightboxOverlay').classList.contains('open')) {
+    if (e.key === 'ArrowLeft') lbNav(-1);
+    if (e.key === 'ArrowRight') lbNav(1);
   }
 });
 
