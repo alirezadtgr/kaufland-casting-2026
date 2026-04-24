@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaufland Ice Ice — Selects</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --accent: #CC0000;
+    --bg: #EFEFEF;
+    --header-bg: #1A1A1A;
+    --card-radius: 10px;
+    --s1: #2563EB;
+    --s2: #16A34A;
+    --s3: #EA580C;
+    --s4: #9333EA;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: #1A1A1A;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .site-header {
+    background: var(--header-bg);
+    color: #fff;
+    padding: 20px 24px 16px;
+  }
+  .header-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .header-left { display: flex; flex-direction: column; gap: 4px; }
+  .header-back {
+    color: #aaa;
+    text-decoration: none;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 6px;
+    transition: color .2s;
+  }
+  .header-back:hover { color: #fff; }
+  .site-header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .site-header h1 span { color: var(--accent); }
+  .header-sub {
+    font-size: 13px;
+    color: #aaa;
+    margin-top: 2px;
+  }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .stats-pill {
+    background: rgba(255,255,255,.1);
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12px;
+    color: #ddd;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .stats-pill .sep { opacity: .4; }
+  .stat-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 3px;
+  }
+  .btn-agency-portal {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    transition: background .2s;
+  }
+  .btn-agency-portal:hover { background: #aa0000; }
+
+  /* ── TOOLBAR ── */
+  .toolbar {
+    background: #fff;
+    border-bottom: 1px solid #ddd;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+  }
+  .toolbar-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .filter-group {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    flex: 1;
+  }
+  .filter-btn {
+    border: 2px solid #ddd;
+    background: #fff;
+    color: #555;
+    border-radius: 20px;
+    padding: 5px 13px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .filter-btn:hover { border-color: #999; color: #222; }
+  .filter-btn.active {
+    background: #1A1A1A;
+    border-color: #1A1A1A;
+    color: #fff;
+  }
+  .filter-btn[data-scene="s1"].active { background: var(--s1); border-color: var(--s1); }
+  .filter-btn[data-scene="s2"].active { background: var(--s2); border-color: var(--s2); }
+  .filter-btn[data-scene="s3"].active { background: var(--s3); border-color: var(--s3); }
+  .filter-btn[data-scene="s4"].active { background: var(--s4); border-color: var(--s4); }
+
+  .agency-select {
+    border: 2px solid #ddd;
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-family: var(--font);
+    color: #555;
+    background: #fff;
+    cursor: pointer;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .agency-select:hover, .agency-select:focus { border-color: #999; color: #222; }
+
+  /* ── MAIN CONTENT ── */
+  .main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 28px 24px 60px;
+  }
+
+  /* ── SCENE SECTION ── */
+  .scene-section { margin-bottom: 48px; }
+  .scene-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .scene-heading h2 {
+    font-size: 17px;
+    font-weight: 700;
+    color: #1A1A1A;
+  }
+  .scene-count-badge {
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    border-radius: 12px;
+    padding: 2px 9px;
+  }
+
+  /* ── TALENT GRID ── */
+  .talent-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 14px;
+  }
+
+  /* ── CARD ── */
+  .talent-card {
+    background: #fff;
+    border-radius: var(--card-radius);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform .18s, box-shadow .18s;
+    box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    position: relative;
+  }
+  .talent-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,.14);
+  }
+  .card-image-wrap {
+    position: relative;
+    width: 100%;
+    padding-top: 150%; /* 2:3 ratio */
+    background: #ddd;
+    overflow: hidden;
+  }
+  .card-image-wrap img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .card-initials-fallback {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: #ccc;
+    font-size: 28px;
+    font-weight: 700;
+    color: #888;
+    letter-spacing: 1px;
+  }
+  .card-info {
+    padding: 9px 10px 11px;
+  }
+  .card-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1A1A1A;
+    line-height: 1.3;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .card-agency {
+    font-size: 11px;
+    color: #777;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 6px;
+  }
+  .scene-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+    border-radius: 8px;
+    padding: 2px 7px;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+  }
+  .scene-badge.s1 { background: var(--s1); }
+  .scene-badge.s2 { background: var(--s2); }
+  .scene-badge.s3 { background: var(--s3); }
+  .scene-badge.s4 { background: var(--s4); }
+
+  /* ── LIGHTBOX ── */
+  .lightbox-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.85);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .lightbox-overlay.open { display: flex; }
+  .lightbox-box {
+    background: #fff;
+    border-radius: 14px;
+    overflow: hidden;
+    max-width: 480px;
+    width: 100%;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    animation: lbIn .2s ease;
+  }
+  @keyframes lbIn {
+    from { opacity: 0; transform: scale(.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  .lightbox-close {
+    position: absolute;
+    top: 12px; right: 12px;
+    width: 32px; height: 32px;
+    background: rgba(0,0,0,.5);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    font-family: var(--font);
+    transition: background .15s;
+  }
+  .lightbox-close:hover { background: rgba(0,0,0,.8); }
+  .lightbox-img-wrap {
+    width: 100%;
+    padding-top: 150%;
+    position: relative;
+    background: #eee;
+    overflow: hidden;
+  }
+  .lightbox-img-wrap img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .lightbox-initials {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: #ccc;
+    font-size: 60px;
+    font-weight: 700;
+    color: #888;
+  }
+  .lightbox-meta {
+    padding: 18px 20px 22px;
+  }
+  .lightbox-name {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .lightbox-agency {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 12px;
+  }
+
+  /* ── AGENCY PORTAL VIEW ── */
+  .agency-view { display: none; }
+  .agency-view.active { display: block; }
+  .selects-view { display: block; }
+  .selects-view.hidden { display: none; }
+
+  .agency-header-box {
+    background: var(--header-bg);
+    color: #fff;
+    padding: 20px 24px 16px;
+  }
+  .agency-header-inner {
+    max-width: 740px;
+    margin: 0 auto;
+  }
+  .agency-header-inner h1 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .agency-header-inner h1 span { color: var(--accent); }
+  .agency-header-sub { font-size: 13px; color: #aaa; }
+
+  .agency-main {
+    max-width: 740px;
+    margin: 0 auto;
+    padding: 24px 24px 60px;
+  }
+  .info-box {
+    background: #fff;
+    border-left: 4px solid var(--s2);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 24px;
+    font-size: 13px;
+    color: #444;
+    line-height: 1.5;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  }
+  .agency-candidate-list { display: flex; flex-direction: column; gap: 14px; }
+  .agency-card {
+    background: #fff;
+    border-radius: var(--card-radius);
+    box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    overflow: hidden;
+    display: flex;
+    gap: 0;
+  }
+  .agency-card-thumb {
+    flex-shrink: 0;
+    width: 80px;
+    height: 107px;
+    overflow: hidden;
+    background: #ddd;
+    position: relative;
+  }
+  .agency-card-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .agency-thumb-initials {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: #ccc;
+    font-size: 20px;
+    font-weight: 700;
+    color: #888;
+  }
+  .agency-card-body {
+    flex: 1;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .agency-card-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1A1A1A;
+  }
+  .agency-card-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .avail-btn {
+    border: 2px solid #ccc;
+    background: #fff;
+    border-radius: 7px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: all .15s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .avail-btn:hover { border-color: #999; }
+  .avail-btn.active-avail {
+    background: #16A34A;
+    border-color: #16A34A;
+    color: #fff;
+  }
+  .avail-btn.active-unavail {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .video-input-wrap { display: flex; flex-direction: column; gap: 3px; }
+  .video-input-label { font-size: 11px; color: #888; font-weight: 600; }
+  .video-input {
+    border: 1.5px solid #ddd;
+    border-radius: 7px;
+    padding: 7px 12px;
+    font-size: 12px;
+    font-family: var(--font);
+    color: #222;
+    width: 100%;
+    outline: none;
+    transition: border-color .15s;
+    background: #fafafa;
+  }
+  .video-input:focus { border-color: #999; background: #fff; }
+  .video-input::placeholder { color: #bbb; }
+
+  .agency-actions {
+    margin-top: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .btn-export {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 22px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: background .2s;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .btn-export:hover { background: #aa0000; }
+  .agency-note {
+    font-size: 11px;
+    color: #999;
+    line-height: 1.5;
+  }
+
+  /* ── AGENCY PORTAL MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.6);
+    z-index: 900;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: #fff;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 500px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,.35);
+    animation: lbIn .2s ease;
+  }
+  .modal-header {
+    background: var(--header-bg);
+    color: #fff;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .modal-header h3 { font-size: 16px; font-weight: 700; }
+  .modal-close {
+    background: none;
+    border: none;
+    color: #aaa;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0;
+    font-family: var(--font);
+    line-height: 1;
+  }
+  .modal-close:hover { color: #fff; }
+  .modal-body { padding: 18px 20px 22px; }
+  .modal-agency-list { display: flex; flex-direction: column; gap: 10px; }
+  .modal-agency-item {
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 12px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+  .modal-agency-name { font-weight: 600; font-size: 14px; }
+  .modal-agency-count { font-size: 12px; color: #888; }
+  .modal-agency-link {
+    background: var(--accent);
+    color: #fff;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 6px;
+    padding: 5px 12px;
+    transition: background .15s;
+    white-space: nowrap;
+  }
+  .modal-agency-link:hover { background: #aa0000; }
+
+  /* ── ADMIN PANEL ── */
+  .admin-panel {
+    display: none;
+    background: #fff;
+    border: 2px dashed #CC0000;
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-top: 32px;
+  }
+  .admin-panel.visible { display: block; }
+  .admin-panel h3 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 14px;
+    color: var(--accent);
+  }
+  .admin-link-list { display: flex; flex-direction: column; gap: 8px; }
+  .admin-link-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 12px;
+    background: #fafafa;
+    border-radius: 7px;
+    border: 1px solid #eee;
+    flex-wrap: wrap;
+  }
+  .admin-link-name { font-weight: 600; font-size: 13px; }
+  .admin-link-url {
+    font-size: 11px;
+    color: #666;
+    font-family: monospace;
+    word-break: break-all;
+    flex: 1;
+  }
+  .btn-copy {
+    background: #1A1A1A;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: background .15s;
+    white-space: nowrap;
+  }
+  .btn-copy:hover { background: #333; }
+  .btn-copy.copied { background: var(--s2); }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+    font-size: 15px;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .talent-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+    .header-inner { flex-direction: column; }
+    .toolbar-inner { gap: 8px; }
+    .stats-pill { flex-wrap: wrap; gap: 6px; }
+    .agency-main { padding: 16px 16px 40px; }
+    .agency-card-body { padding: 10px 12px; }
+    .agency-actions { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     SELECTS VIEW (default)
+══════════════════════════════════════ -->
+<div id="selectsView" class="selects-view">
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="header-left">
+        <a href="casting_review.html" class="header-back">&#8592; Zurück zur Auswahl</a>
+        <h1>Kaufland Ice Ice — <span>Selects</span></h1>
+        <p class="header-sub">98 Selects · Drehtag 29. April 2026</p>
+      </div>
+      <div class="header-right">
+        <div class="stats-pill" id="statsPill">
+          <span>Gesamt: <strong>98</strong></span>
+          <span class="sep">|</span>
+          <span><span class="stat-dot" style="background:var(--s1)"></span><strong id="s1count">0</strong></span>
+          <span><span class="stat-dot" style="background:var(--s2)"></span><strong id="s2count">0</strong></span>
+          <span><span class="stat-dot" style="background:var(--s3)"></span><strong id="s3count">0</strong></span>
+          <span><span class="stat-dot" style="background:var(--s4)"></span><strong id="s4count">0</strong></span>
+        </div>
+        <button class="btn-agency-portal" onclick="openAgencyModal()">Agentur-Portal &#8594;</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="toolbar-inner">
+      <div class="filter-group" id="sceneFilters">
+        <button class="filter-btn active" data-scene="all" onclick="setSceneFilter('all',this)">Alle</button>
+        <button class="filter-btn" data-scene="s1" onclick="setSceneFilter('s1',this)">Szene 1 – Parkplatz</button>
+        <button class="filter-btn" data-scene="s2" onclick="setSceneFilter('s2',this)">Szene 2 – Kühlregal</button>
+        <button class="filter-btn" data-scene="s3" onclick="setSceneFilter('s3',this)">Szene 3 – Stau</button>
+        <button class="filter-btn" data-scene="s4" onclick="setSceneFilter('s4',this)">Szene 4 – Vorgarten</button>
+      </div>
+      <select class="agency-select" id="agencyFilter" onchange="setAgencyFilter(this.value)">
+        <option value="all">Alle Agenturen</option>
+      </select>
+    </div>
+  </div>
+
+  <main class="main" id="mainContent">
+    <!-- rendered by JS -->
+  </main>
+
+  <div class="main" style="padding-top:0">
+    <div class="admin-panel" id="adminPanel">
+      <h3>Agentur-Links (nur für Producer)</h3>
+      <div class="admin-link-list" id="adminLinkList"></div>
+    </div>
+  </div>
+
+</div><!-- /selectsView -->
+
+
+<!-- ══════════════════════════════════════
+     AGENCY VIEW
+══════════════════════════════════════ -->
+<div id="agencyView" class="agency-view">
+
+  <header class="agency-header-box">
+    <div class="agency-header-inner">
+      <h1>eCasting Einreichung — <span id="agencyViewName">Agency</span></h1>
+      <p class="agency-header-sub">Kaufland Ice Ice · Drehtag: Mittwoch, 29. April 2026</p>
+    </div>
+  </header>
+
+  <div class="agency-main">
+    <div class="info-box">
+      Bitte bestätigen Sie für jeden Kandidaten die Verfügbarkeit und reichen Sie wenn möglich ein eCasting-Video ein.
+    </div>
+    <div class="agency-candidate-list" id="agencyCandidateList"></div>
+    <div class="agency-actions">
+      <button class="btn-export" onclick="exportCSV()">&#8595; Zusammenfassung exportieren</button>
+      <p class="agency-note">Ihre Eingaben werden lokal gespeichert<br>und beim Export übermittelt.</p>
+    </div>
+  </div>
+
+</div><!-- /agencyView -->
+
+
+<!-- ══════════════════════════════════════
+     LIGHTBOX
+══════════════════════════════════════ -->
+<div class="lightbox-overlay" id="lightboxOverlay" onclick="closeLightboxOnOverlay(event)">
+  <div class="lightbox-box">
+    <button class="lightbox-close" onclick="closeLightbox()">&#215;</button>
+    <div class="lightbox-img-wrap">
+      <img id="lbImg" src="" alt="">
+      <div class="lightbox-initials" id="lbInitials"></div>
+    </div>
+    <div class="lightbox-meta">
+      <div class="lightbox-name" id="lbName"></div>
+      <div class="lightbox-agency" id="lbAgency"></div>
+      <span class="scene-badge" id="lbBadge"></span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     AGENCY PORTAL MODAL
+══════════════════════════════════════ -->
+<div class="modal-overlay" id="agencyModal" onclick="closeModalOnOverlay(event)">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Agentur-Portal — Links</h3>
+      <button class="modal-close" onclick="closeAgencyModal()">&#215;</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-agency-list" id="modalAgencyList"></div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+// ══════════════════════════════════════
+// DATA
+// ══════════════════════════════════════
+const selects = [
+  {name:"ALEKS",folder:"ALEKS",agency:"M4 Models",scene:"s2"},
+  {name:"Aaron Breyer",folder:"Aaron_Breyer",agency:"Fangfrisch Berlin",scene:"s2"},
+  {name:"Akke Visschers",folder:"Akke_Visschers",agency:"Unknown Agency",scene:"s1"},
+  {name:"Alba",folder:"Alba",agency:"Splendide Models",scene:"s1"},
+  {name:"Alessija",folder:"Alessija",agency:"Splendide Models",scene:"s1"},
+  {name:"Alex Daff",folder:"Alex_Daff",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Alexander Bonnet",folder:"Alexander_Bonnet",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Amelie Zappe",folder:"Amelie_Zappe",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Amon Sander Seidler",folder:"Amon_Sander_Seidler",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Anamika Datta",folder:"Anamika_Datta",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Angelo",folder:"Angelo",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Angelo-f",folder:"Angelo-f",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Anil",folder:"Anil",agency:"Splendide Models",scene:"s3"},
+  {name:"Anna Jensen",folder:"Anna_Jensen",agency:"Fangfrisch Berlin",scene:"s4"},
+  {name:"Annabel Karmelk",folder:"Annabel_Karmelk",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Anne Sophie Pied",folder:"Anne_Sophie_Pied",agency:"Splendide Models",scene:"s1"},
+  {name:"Anton Wiegand",folder:"Anton_Wiegand",agency:"Fangfrisch Berlin",scene:"s3"},
+  {name:"Antonia Langenohl",folder:"Antonia_Langenohl",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Antonia Schone",folder:"Antonia_Schone",agency:"Fangfrisch Berlin",scene:"s3"},
+  {name:"BASTIAN",folder:"BASTIAN",agency:"M4 Models",scene:"s3"},
+  {name:"Beate Funke",folder:"Beate_Funke",agency:"Fangfrisch Berlin",scene:"s4"},
+  {name:"Beatrice",folder:"Beatrice",agency:"Smiling Models",scene:"s3"},
+  {name:"Benjamin Knaak",folder:"Benjamin_Knaak",agency:"Fangfrisch Berlin",scene:"s3"},
+  {name:"Benjamin Orlando",folder:"Benjamin_Orlando",agency:"Unknown Agency",scene:"s2"},
+  {name:"Birgit Von Moller",folder:"Birgit_Von_Moller",agency:"Fangfrisch Berlin",scene:"s4"},
+  {name:"Carlo Klingler",folder:"Carlo_Klingler",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Cecile Courouble",folder:"Cecile_Courouble",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Chiara Noack",folder:"Chiara_Noack",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Christopher Schmidt",folder:"Christopher_Schmidt",agency:"Fangfrisch Berlin",scene:"s4"},
+  {name:"Coco Weber",folder:"Coco_Weber",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Cyrille Eenshuistra",folder:"Cyrille_Eenshuistra",agency:"Fangfrisch Berlin",scene:"s4"},
+  {name:"Dennis Beltchikov",folder:"Dennis_Beltchikov",agency:"Fangfrisch Berlin",scene:"s2"},
+  {name:"Elisa",folder:"Elisa",agency:"Splendide Models",scene:"s2"},
+  {name:"Fabiana Bogiatzoglou",folder:"Fabiana_Bogiatzoglou",agency:"Fangfrisch Berlin",scene:"s2"},
+  {name:"Fabienne Stera",folder:"Fabienne_Stera",agency:"Fangfrisch Berlin",scene:"s2"},
+  {name:"Felix Rahmer",folder:"Felix_Rahmer",agency:"Fangfrisch Berlin",scene:"s2"},
+  {name:"Gerd Welkisch",folder:"Gerd_Welkisch",agency:"Fangfrisch Berlin",scene:"s4"},
+  {name:"Harald Schindel",folder:"Harald_Schindel",agency:"Fangfrisch Berlin",scene:"s4"},
+  {name:"Ilona Malganova",folder:"Ilona_Malganova",agency:"Fangfrisch Berlin",scene:"s3"},
+  {name:"Ines Bartholomaus",folder:"Ines_Bartholomaus",agency:"Fangfrisch Berlin",scene:"s4"},
+  {name:"Jakob",folder:"Jakob",agency:"Splendide Models",scene:"s1"},
+  {name:"Jameela",folder:"Jameela",agency:"Unknown Agency",scene:"s4"},
+  {name:"Janin Torzewski",folder:"Janin_Torzewski",agency:"Splendide Models",scene:"s3"},
+  {name:"Jasmin",folder:"Jasmin",agency:"Splendide Models",scene:"s4"},
+  {name:"Joachim Jasiek",folder:"Joachim_Jasiek",agency:"Fangfrisch Berlin",scene:"s4"},
+  {name:"Jozsef Levai",folder:"Jozsef_Levai",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Jurgen Fath",folder:"Jurgen_Fath",agency:"Fangfrisch Berlin",scene:"s4"},
+  {name:"Kallin Mueller",folder:"Kallin_Mueller",agency:"Unknown Agency",scene:"s2"},
+  {name:"Konrad Abramowski",folder:"Konrad_Abramowski",agency:"Fangfrisch Berlin",scene:"s2"},
+  {name:"LAURENZ ZIMMERMANN",folder:"LAURENZ_ZIMMERMANN",agency:"Fangfrisch Berlin",scene:"s2"},
+  {name:"LESLIE",folder:"LESLIE",agency:"M4 Models",scene:"s3"},
+  {name:"Lasse Dressler",folder:"Lasse_Dressler",agency:"Fangfrisch Berlin",scene:"s2"},
+  {name:"Lea Wolfram",folder:"Lea_Wolfram",agency:"Unknown Agency",scene:"s2"},
+  {name:"Leo",folder:"Leo",agency:"Splendide Models",scene:"s3"},
+  {name:"Leonard",folder:"Leonard",agency:"Splendide Models",scene:"s3"},
+  {name:"Lina Wetjen",folder:"Lina_Wetjen",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Liv",folder:"Liv",agency:"Splendide Models",scene:"s1"},
+  {name:"Liv Salvisberg",folder:"Liv_Salvisberg",agency:"Unknown Agency",scene:"s2"},
+  {name:"Lore Lotte Peter",folder:"Lore_Lotte_Peter",agency:"Fangfrisch Berlin",scene:"s3"},
+  {name:"Louis Braun",folder:"Louis_Braun",agency:"Fangfrisch Berlin",scene:"s2"},
+  {name:"Louis Wiener",folder:"Louis_Wiener",agency:"Fangfrisch Berlin",scene:"s3"},
+  {name:"Luca St",folder:"Luca_St",agency:"Splendide Models",scene:"s3"},
+  {name:"Lucas Avid Hubner",folder:"Lucas_Avid_Hubner",agency:"Fangfrisch Berlin",scene:"s3"},
+  {name:"Luisa-f",folder:"Luisa-f",agency:"Fangfrisch Berlin",scene:"s3"},
+  {name:"Luke Schafer",folder:"Luke_Schafer",agency:"Fangfrisch Berlin",scene:"s3"},
+  {name:"MARCUS ZIERKE",folder:"MARCUS_ZIERKE",agency:"Splendide Models",scene:"s1"},
+  {name:"Marc Soellinger",folder:"Marc_Soellinger",agency:"Unknown Agency",scene:"s1"},
+  {name:"Marie Mai",folder:"Marie_Mai",agency:"Splendide Models",scene:"s2"},
+  {name:"Marq",folder:"Marq",agency:"Smiling Models",scene:"s3"},
+  {name:"Martin",folder:"Martin",agency:"Smiling Models",scene:"s2"},
+  {name:"Marvin Hug",folder:"Marvin_Hug",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Mathilda Bordfeld",folder:"Mathilda_Bordfeld",agency:"Fangfrisch Berlin",scene:"s3"},
+  {name:"Maxine Riewe",folder:"Maxine_Riewe",agency:"Splendide Models",scene:"s1"},
+  {name:"Millicint Hayes",folder:"Millicint_Hayes",agency:"Fangfrisch Berlin",scene:"s3"},
+  {name:"Monika Stenzel",folder:"Monika_Stenzel",agency:"Fangfrisch Berlin",scene:"s4"},
+  {name:"Nazar Zhmuro",folder:"Nazar_Zhmuro",agency:"Unknown Agency",scene:"s3"},
+  {name:"Nele Luisa",folder:"Nele_Luisa",agency:"Unknown Agency",scene:"s2"},
+  {name:"Nina Julia",folder:"Nina_Julia",agency:"Unknown Agency",scene:"s2"},
+  {name:"Otis Hagen",folder:"Otis_Hagen",agency:"Fangfrisch Berlin",scene:"s4"},
+  {name:"Patrick",folder:"Patrick",agency:"Smiling Models",scene:"s1"},
+  {name:"Paula Breuer",folder:"Paula_Breuer",agency:"Unknown Agency",scene:"s3"},
+  {name:"Pegah",folder:"Pegah",agency:"Splendide Models",scene:"s1"},
+  {name:"Perry Frenzel",folder:"Perry_Frenzel",agency:"Unknown Agency",scene:"s2"},
+  {name:"Pit",folder:"Pit",agency:"Splendide Models",scene:"s3"},
+  {name:"Rabia",folder:"Rabia",agency:"Splendide Models",scene:"s4"},
+  {name:"Rachel",folder:"Rachel",agency:"Splendide Models",scene:"s2"},
+  {name:"Rosalie",folder:"Rosalie",agency:"Splendide Models",scene:"s2"},
+  {name:"SAORI",folder:"SAORI",agency:"M4 Models",scene:"s1"},
+  {name:"Selina Schaper",folder:"Selina_Schaper",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Sen Br Cker",folder:"Sen_Br_Cker",agency:"Unknown Agency",scene:"s3"},
+  {name:"Simone Muller Pradella",folder:"Simone_Muller_Pradella",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Stefan Wachsmuth",folder:"Stefan_Wachsmuth",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Susanne Jo",folder:"Susanne_Jo",agency:"Splendide Models",scene:"s4"},
+  {name:"Valan Sharp",folder:"Valan_Sharp",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"viva serviceagentur gmbh (1)",folder:"viva_serviceagentur_gmbh_(1)",agency:"Viva Serviceagentur",scene:"s1"},
+  {name:"viva serviceagentur gmbh (10)",folder:"viva_serviceagentur_gmbh_(10)",agency:"Viva Serviceagentur",scene:"s1"},
+  {name:"viva serviceagentur gmbh (4)",folder:"viva_serviceagentur_gmbh_(4)",agency:"Viva Serviceagentur",scene:"s3"},
+  {name:"viva serviceagentur gmbh (6)",folder:"viva_serviceagentur_gmbh_(6)",agency:"Viva Serviceagentur",scene:"s4"},
+];
+
+const sceneInfo = {
+  s1: { label: "Szene 1 – Parkplatz",  color: "#2563EB" },
+  s2: { label: "Szene 2 – Kühlregal",  color: "#16A34A" },
+  s3: { label: "Szene 3 – Stau",       color: "#EA580C" },
+  s4: { label: "Szene 4 – Vorgarten",  color: "#9333EA" },
+};
+
+const agencySlugMap = {
+  "fangfrisch-berlin":   "Fangfrisch Berlin",
+  "splendide-models":    "Splendide Models",
+  "m4-models":           "M4 Models",
+  "unknown-agency":      "Unknown Agency",
+  "smiling-models":      "Smiling Models",
+  "viva-serviceagentur": "Viva Serviceagentur",
+};
+function agencyToSlug(name) {
+  return Object.keys(agencySlugMap).find(k => agencySlugMap[k] === name) || name.toLowerCase().replace(/\s+/g,'-');
+}
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+let currentScene = 'all';
+let currentAgency = 'all';
+let currentAgencySlug = null; // for agency portal
+
+function getParams() {
+  return new URLSearchParams(window.location.search);
+}
+
+function init() {
+  const params = getParams();
+  const view   = params.get('view');
+  const agency = params.get('agency');
+  const admin  = params.get('admin');
+
+  updateStats();
+  populateAgencyDropdown();
+  buildAdminPanel();
+  buildModalAgencyList();
+
+  if (view === 'agency' && agency && agencySlugMap[agency]) {
+    showAgencyView(agency);
+  } else {
+    showSelectsView();
+    if (admin === '1') {
+      document.getElementById('adminPanel').classList.add('visible');
+    }
+  }
+}
+
+// ══════════════════════════════════════
+// STATS
+// ══════════════════════════════════════
+function updateStats() {
+  ['s1','s2','s3','s4'].forEach(s => {
+    document.getElementById(s+'count').textContent = selects.filter(c => c.scene === s).length;
+  });
+}
+
+// ══════════════════════════════════════
+// AGENCY DROPDOWN (toolbar)
+// ══════════════════════════════════════
+function populateAgencyDropdown() {
+  const agencies = [...new Set(selects.map(c => c.agency))].sort();
+  const sel = document.getElementById('agencyFilter');
+  agencies.forEach(a => {
+    const opt = document.createElement('option');
+    opt.value = a;
+    opt.textContent = a;
+    sel.appendChild(opt);
+  });
+}
+
+// ══════════════════════════════════════
+// FILTER LOGIC
+// ══════════════════════════════════════
+function setSceneFilter(scene, btn) {
+  currentScene = scene;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderGrid();
+}
+
+function setAgencyFilter(val) {
+  currentAgency = val;
+  renderGrid();
+}
+
+function filteredSelects() {
+  return selects.filter(c => {
+    const sceneOk  = currentScene === 'all' || c.scene === currentScene;
+    const agencyOk = currentAgency === 'all' || c.agency === currentAgency;
+    return sceneOk && agencyOk;
+  });
+}
+
+// ══════════════════════════════════════
+// RENDER GRID
+// ══════════════════════════════════════
+function getInitials(name) {
+  return name.split(/\s+/).slice(0,2).map(w => w[0]||'').join('').toUpperCase();
+}
+
+function makeTalentCard(c) {
+  const imgSrc = `casting_images/${c.folder}/headshot.jpg`;
+  const initials = getInitials(c.name);
+  const scene = sceneInfo[c.scene];
+  const div = document.createElement('div');
+  div.className = 'talent-card';
+  div.innerHTML = `
+    <div class="card-image-wrap">
+      <img src="${imgSrc}" alt="${c.name}" onerror="imgFallback(this)">
+      <div class="card-initials-fallback">${initials}</div>
+    </div>
+    <div class="card-info">
+      <div class="card-name">${c.name}</div>
+      <div class="card-agency">${c.agency}</div>
+      <span class="scene-badge ${c.scene}">${scene.label}</span>
+    </div>
+  `;
+  div.addEventListener('click', () => openLightbox(c));
+  return div;
+}
+
+function imgFallback(img) {
+  img.style.display = 'none';
+  const fb = img.nextElementSibling;
+  if (fb) { fb.style.display = 'flex'; }
+}
+
+function renderGrid() {
+  const main = document.getElementById('mainContent');
+  main.innerHTML = '';
+  const data = filteredSelects();
+
+  if (data.length === 0) {
+    main.innerHTML = '<div class="empty-state">Keine Kandidaten für diese Auswahl.</div>';
+    return;
+  }
+
+  const isSingleScene = currentScene !== 'all';
+
+  if (isSingleScene) {
+    const grid = document.createElement('div');
+    grid.className = 'talent-grid';
+    data.forEach(c => grid.appendChild(makeTalentCard(c)));
+    main.appendChild(grid);
+  } else {
+    ['s1','s2','s3','s4'].forEach(s => {
+      const group = data.filter(c => c.scene === s);
+      if (group.length === 0) return;
+      const section = document.createElement('div');
+      section.className = 'scene-section';
+      const heading = document.createElement('div');
+      heading.className = 'scene-heading';
+      const badge = document.createElement('span');
+      badge.className = 'scene-count-badge';
+      badge.style.background = sceneInfo[s].color;
+      badge.textContent = group.length;
+      heading.innerHTML = `<h2>${sceneInfo[s].label}</h2>`;
+      heading.appendChild(badge);
+      section.appendChild(heading);
+      const grid = document.createElement('div');
+      grid.className = 'talent-grid';
+      group.forEach(c => grid.appendChild(makeTalentCard(c)));
+      section.appendChild(grid);
+      main.appendChild(section);
+    });
+  }
+}
+
+// ══════════════════════════════════════
+// LIGHTBOX
+// ══════════════════════════════════════
+function openLightbox(c) {
+  const imgSrc = `casting_images/${c.folder}/headshot.jpg`;
+  const scene = sceneInfo[c.scene];
+  const img = document.getElementById('lbImg');
+  img.src = imgSrc;
+  img.style.display = 'block';
+  const lbInit = document.getElementById('lbInitials');
+  lbInit.style.display = 'none';
+  lbInit.textContent = getInitials(c.name);
+  img.onerror = function() {
+    img.style.display = 'none';
+    lbInit.style.display = 'flex';
+  };
+  document.getElementById('lbName').textContent = c.name;
+  document.getElementById('lbAgency').textContent = c.agency;
+  const badge = document.getElementById('lbBadge');
+  badge.textContent = scene.label;
+  badge.className = `scene-badge ${c.scene}`;
+  document.getElementById('lightboxOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+  document.getElementById('lightboxOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function closeLightboxOnOverlay(e) {
+  if (e.target === document.getElementById('lightboxOverlay')) closeLightbox();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeLightbox();
+    closeAgencyModal();
+  }
+});
+
+// ══════════════════════════════════════
+// AGENCY PORTAL MODAL
+// ══════════════════════════════════════
+function buildModalAgencyList() {
+  const list = document.getElementById('modalAgencyList');
+  list.innerHTML = '';
+  const base = window.location.href.split('?')[0];
+  Object.keys(agencySlugMap).forEach(slug => {
+    const name = agencySlugMap[slug];
+    const count = selects.filter(c => c.agency === name).length;
+    const url = `${base}?view=agency&agency=${slug}`;
+    const item = document.createElement('div');
+    item.className = 'modal-agency-item';
+    item.innerHTML = `
+      <div>
+        <div class="modal-agency-name">${name}</div>
+        <div class="modal-agency-count">${count} Kandidat${count!==1?'en':''}</div>
+      </div>
+      <a href="${url}" class="modal-agency-link" target="_blank">Portal &#8599;</a>
+    `;
+    list.appendChild(item);
+  });
+}
+
+function openAgencyModal() {
+  buildModalAgencyList();
+  document.getElementById('agencyModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeAgencyModal() {
+  document.getElementById('agencyModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function closeModalOnOverlay(e) {
+  if (e.target === document.getElementById('agencyModal')) closeAgencyModal();
+}
+
+// ══════════════════════════════════════
+// ADMIN PANEL
+// ══════════════════════════════════════
+function buildAdminPanel() {
+  const list = document.getElementById('adminLinkList');
+  list.innerHTML = '';
+  const base = window.location.href.split('?')[0];
+  Object.keys(agencySlugMap).forEach(slug => {
+    const name = agencySlugMap[slug];
+    const url = `${base}?view=agency&agency=${slug}`;
+    const item = document.createElement('div');
+    item.className = 'admin-link-item';
+    item.innerHTML = `
+      <span class="admin-link-name">${name}</span>
+      <span class="admin-link-url">${url}</span>
+      <button class="btn-copy" onclick="copyUrl('${url}', this)">Kopieren</button>
+    `;
+    list.appendChild(item);
+  });
+}
+
+function copyUrl(url, btn) {
+  navigator.clipboard.writeText(url).then(() => {
+    btn.textContent = 'Kopiert!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Kopieren';
+      btn.classList.remove('copied');
+    }, 2000);
+  }).catch(() => {
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = url;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent = 'Kopiert!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Kopieren';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+
+// ══════════════════════════════════════
+// AGENCY VIEW
+// ══════════════════════════════════════
+function showSelectsView() {
+  document.getElementById('selectsView').style.display = 'block';
+  document.getElementById('agencyView').style.display = 'none';
+  renderGrid();
+}
+
+function showAgencyView(slug) {
+  document.getElementById('selectsView').style.display = 'none';
+  document.getElementById('agencyView').style.display = 'block';
+
+  currentAgencySlug = slug;
+  const agencyName = agencySlugMap[slug];
+  document.getElementById('agencyViewName').textContent = agencyName;
+  document.title = `eCasting — ${agencyName} | Kaufland Ice Ice`;
+
+  const candidates = selects.filter(c => c.agency === agencyName);
+  const storageKey = `ecasting_${slug}`;
+  let savedState = {};
+  try { savedState = JSON.parse(localStorage.getItem(storageKey) || '{}'); } catch(e) {}
+
+  const list = document.getElementById('agencyCandidateList');
+  list.innerHTML = '';
+
+  candidates.forEach(c => {
+    const state = savedState[c.folder] || { avail: null, video: '' };
+    const imgSrc = `casting_images/${c.folder}/headshot.jpg`;
+    const scene = sceneInfo[c.scene];
+    const initials = getInitials(c.name);
+
+    const card = document.createElement('div');
+    card.className = 'agency-card';
+    card.dataset.folder = c.folder;
+
+    card.innerHTML = `
+      <div class="agency-card-thumb">
+        <img src="${imgSrc}" alt="${c.name}" onerror="agencyImgFallback(this)">
+        <div class="agency-thumb-initials">${initials}</div>
+      </div>
+      <div class="agency-card-body">
+        <div class="agency-card-name">${c.name}</div>
+        <div class="agency-card-row">
+          <span class="scene-badge ${c.scene}">${scene.label}</span>
+        </div>
+        <div class="agency-card-row">
+          <button class="avail-btn ${state.avail==='yes'?'active-avail':''}"
+                  onclick="setAvail('${c.folder}','yes',this,'${slug}')">&#10003; Verfügbar</button>
+          <button class="avail-btn ${state.avail==='no'?'active-unavail':''}"
+                  onclick="setAvail('${c.folder}','no',this,'${slug}')">&#10007; Nicht verfügbar</button>
+        </div>
+        <div class="video-input-wrap">
+          <label class="video-input-label">Video-Link</label>
+          <input type="url" class="video-input"
+                 placeholder="eCasting-Link (WeTransfer, Dropbox, Google Drive…)"
+                 value="${escapeAttr(state.video||'')}"
+                 oninput="saveVideoLink('${c.folder}','${slug}',this.value)">
+        </div>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+function escapeAttr(str) {
+  return str.replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function agencyImgFallback(img) {
+  img.style.display = 'none';
+  const fb = img.nextElementSibling;
+  if (fb) { fb.style.display = 'flex'; }
+}
+
+function getAgencyState(slug) {
+  try { return JSON.parse(localStorage.getItem(`ecasting_${slug}`) || '{}'); } catch(e) { return {}; }
+}
+
+function saveAgencyState(slug, state) {
+  try { localStorage.setItem(`ecasting_${slug}`, JSON.stringify(state)); } catch(e) {}
+}
+
+function setAvail(folder, val, btn, slug) {
+  const state = getAgencyState(slug);
+  if (!state[folder]) state[folder] = { avail: null, video: '' };
+
+  if (state[folder].avail === val) {
+    state[folder].avail = null;
+    btn.classList.remove('active-avail','active-unavail');
+  } else {
+    state[folder].avail = val;
+    const card = btn.closest('.agency-card');
+    card.querySelectorAll('.avail-btn').forEach(b => b.classList.remove('active-avail','active-unavail'));
+    if (val === 'yes') btn.classList.add('active-avail');
+    else btn.classList.add('active-unavail');
+  }
+  saveAgencyState(slug, state);
+}
+
+function saveVideoLink(folder, slug, value) {
+  const state = getAgencyState(slug);
+  if (!state[folder]) state[folder] = { avail: null, video: '' };
+  state[folder].video = value;
+  saveAgencyState(slug, state);
+}
+
+// ══════════════════════════════════════
+// EXPORT CSV
+// ══════════════════════════════════════
+function exportCSV() {
+  const slug = currentAgencySlug;
+  const agencyName = agencySlugMap[slug];
+  const state = getAgencyState(slug);
+  const candidates = selects.filter(c => c.agency === agencyName);
+
+  const rows = [['Name','Szene','Verfügbarkeit','Video-Link']];
+  candidates.forEach(c => {
+    const s = state[c.folder] || { avail: null, video: '' };
+    const avail = s.avail === 'yes' ? 'Verfügbar' : s.avail === 'no' ? 'Nicht verfügbar' : '';
+    rows.push([c.name, sceneInfo[c.scene].label, avail, s.video || '']);
+  });
+
+  const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+  const blob = new Blob(['\uFEFF'+csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `eCasting_${agencyName.replace(/\s+/g,'_')}_Kaufland_IceIce.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// ══════════════════════════════════════
+// START
+// ══════════════════════════════════════
+init();
+</script>
+</body>
+</html>
