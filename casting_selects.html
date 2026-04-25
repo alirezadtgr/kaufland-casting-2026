@@ -867,7 +867,7 @@
       <div style="margin-top:22px;padding-top:16px;border-top:1px solid #eee">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
           <h3 style="font-size:14px;font-weight:700;color:var(--accent);margin:0">eCasting Eingang</h3>
-          <button id="btnLoadEcastings" class="btn-copy" onclick="loadEcastingStatus()">Laden</button>
+          <button id="btnLoadEcastings" class="btn-copy" onclick="loadEcastingStatus()">Anzeigen</button>
         </div>
         <div id="ecastingStatus"></div>
       </div>
@@ -1025,36 +1025,18 @@ function resetUpload(folder, slug) {
   setUploadState(fid, 'idle');
 }
 
-async function loadEcastingStatus() {
+function loadEcastingStatus() {
   const statusEl = document.getElementById('ecastingStatus');
-  const btn = document.getElementById('btnLoadEcastings');
   if (!statusEl) return;
-  if (!BUNNY_READY) {
-    statusEl.innerHTML = '<p style="font-size:12px;color:#999">Bunny nicht konfiguriert.</p>';
-    return;
-  }
-  if (btn) btn.textContent = 'Laden…';
-  try {
-    const res = await fetch(`https://${BUNNY_HOST}/${BUNNY_ZONE}/${BUNNY_PREFIX}/`, {
-      headers: { AccessKey: BUNNY_API_KEY }
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    const uploaded = new Set(data.map(f => f.ObjectName));
-    const done = selects.filter(c => uploaded.has(c.folder)).length;
-    statusEl.innerHTML = `
-      <div style="font-size:13px;margin-bottom:10px"><strong>${done}</strong> / ${selects.length} eCastings eingegangen</div>
-      <div style="display:flex;flex-wrap:wrap;gap:5px">
-        ${selects.map(c => {
-          const ok = uploaded.has(c.folder);
-          return `<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:${ok?'#dcfce7':'#fee2e2'};color:${ok?'#15803d':'#dc2626'}">${c.name}</span>`;
-        }).join('')}
-      </div>`;
-    if (btn) btn.textContent = 'Aktualisieren';
-  } catch(err) {
-    statusEl.innerHTML = `<p style="font-size:12px;color:var(--accent)">Fehler: ${err.message}</p>`;
-    if (btn) btn.textContent = 'Neu laden';
-  }
+  statusEl.innerHTML = `
+    <p style="font-size:12px;color:#666;line-height:1.5;margin-bottom:10px">
+      Alle eingegangenen Videos sind im Bunny File Manager sichtbar.<br>
+      Pfad: <code style="background:#f3f3f3;padding:1px 5px;border-radius:3px;font-size:11px">${BUNNY_ZONE} → ${BUNNY_PREFIX}/</code>
+    </p>
+    <a href="https://dash.bunny.net/" target="_blank"
+       style="display:inline-flex;align-items:center;gap:6px;background:#1A1A1A;color:#fff;font-size:12px;font-weight:600;border-radius:7px;padding:7px 14px;text-decoration:none">
+      Bunny File Manager &#8599;
+    </a>`;
 }
 
 // ══════════════════════════════════════
