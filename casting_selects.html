@@ -710,6 +710,97 @@
     font-size: 15px;
   }
 
+  /* ── ECASTING UPLOAD ── */
+  .ecasting-upload-wrap { display: flex; flex-direction: column; gap: 6px; }
+  .upload-label { font-size: 11px; color: #888; font-weight: 600; }
+  .upload-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .btn-upload-pick {
+    border: 1.5px solid #ddd;
+    background: #fff;
+    border-radius: 7px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font);
+    color: #444;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .btn-upload-pick:hover { border-color: #999; color: #222; }
+  .upload-filename {
+    font-size: 11px;
+    color: #666;
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .btn-upload-go {
+    background: var(--s1);
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: background .15s;
+    margin-top: 2px;
+  }
+  .btn-upload-go:hover { background: #1d4ed8; }
+  .btn-upload-go.hidden { display: none; }
+  .progress-wrap { display: flex; flex-direction: column; gap: 5px; }
+  .progress-label { font-size: 11px; color: #888; }
+  .progress-bar-outer { height: 5px; background: #eee; border-radius: 3px; overflow: hidden; }
+  .progress-bar-inner {
+    height: 100%;
+    background: var(--s1);
+    border-radius: 3px;
+    width: 60%;
+    animation: progressPulse 1.2s ease-in-out infinite;
+  }
+  @keyframes progressPulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+  .upload-success-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .upload-success-badge {
+    background: #dcfce7;
+    color: #15803d;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 20px;
+    padding: 4px 11px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .btn-upload-replace {
+    background: none;
+    border: none;
+    color: #999;
+    font-size: 11px;
+    cursor: pointer;
+    text-decoration: underline;
+    font-family: var(--font);
+    padding: 0;
+  }
+  .btn-upload-replace:hover { color: #666; }
+  .upload-error-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .upload-error-msg { font-size: 11px; color: var(--accent); }
+  .btn-upload-retry {
+    background: none;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    border-radius: 6px;
+    padding: 3px 9px;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: var(--font);
+  }
+  .btn-upload-retry:hover { background: #fff0f0; }
+  .upload-state { display: none; }
+  .upload-state.active { display: block; }
+
   /* ── RESPONSIVE ── */
   @media (max-width: 600px) {
     .talent-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
@@ -721,6 +812,7 @@
     .agency-actions { flex-direction: column; align-items: flex-start; }
   }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 
@@ -773,6 +865,13 @@
     <div class="admin-panel" id="adminPanel">
       <h3>Agentur-Links (nur für Producer)</h3>
       <div class="admin-link-list" id="adminLinkList"></div>
+      <div style="margin-top:22px;padding-top:16px;border-top:1px solid #eee">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <h3 style="font-size:14px;font-weight:700;color:var(--accent);margin:0">eCasting Eingang</h3>
+          <button id="btnLoadEcastings" class="btn-copy" onclick="loadEcastingStatus()">Laden</button>
+        </div>
+        <div id="ecastingStatus"></div>
+      </div>
     </div>
   </div>
 
@@ -845,6 +944,121 @@
 
 
 <script>
+// ══════════════════════════════════════
+// SUPABASE CONFIG
+// Werte aus: Supabase Dashboard → Settings → API
+// ══════════════════════════════════════
+const SUPABASE_URL      = 'YOUR_SUPABASE_URL';       // z.B. https://xyz.supabase.co
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';  // eyJ...
+const BUCKET        = 'ecastings';
+const BUCKET_PREFIX = 'kaufland-2026';
+
+let supabaseClient = null;
+try {
+  if (SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
+    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+} catch(e) { console.warn('Supabase init failed:', e); }
+
+const pendingFiles = new Map(); // folder → File
+
+function folderId(folder) {
+  return folder.replace(/[^a-zA-Z0-9_-]/g, '_');
+}
+
+async function uploadEcasting(folder, file) {
+  if (!supabaseClient) throw new Error('Supabase nicht konfiguriert. Bitte SUPABASE_URL und SUPABASE_ANON_KEY eintragen.');
+  const ext = (file.name.split('.').pop() || 'mp4').toLowerCase();
+  const path = `${BUCKET_PREFIX}/${folder}/ecasting.${ext}`;
+  const { error } = await supabaseClient.storage
+    .from(BUCKET)
+    .upload(path, file, { upsert: true });
+  if (error) throw error;
+  return path;
+}
+
+function setUploadState(fid, state) {
+  ['idle','uploading','done','error'].forEach(s => {
+    const el = document.getElementById(`us-${s}-${fid}`);
+    if (el) el.classList.toggle('active', s === state);
+  });
+}
+
+function onFileSelect(folder, slug, input) {
+  const fid = folderId(folder);
+  if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
+  pendingFiles.set(folder, file);
+  const nameEl = document.getElementById(`ufname-${fid}`);
+  if (nameEl) nameEl.textContent = file.name;
+  const goBtn = document.getElementById(`ubtn-go-${fid}`);
+  if (goBtn) goBtn.classList.remove('hidden');
+}
+
+async function doUpload(folder, slug) {
+  const fid = folderId(folder);
+  const file = pendingFiles.get(folder);
+  if (!file) return;
+  setUploadState(fid, 'uploading');
+  try {
+    const path = await uploadEcasting(folder, file);
+    const st = getAgencyState(slug);
+    if (!st[folder]) st[folder] = { avail: null };
+    st[folder].uploadedPath = path;
+    saveAgencyState(slug, st);
+    pendingFiles.delete(folder);
+    setUploadState(fid, 'done');
+  } catch(err) {
+    const errEl = document.getElementById(`uerr-${fid}`);
+    if (errEl) errEl.textContent = err.message || 'Upload fehlgeschlagen.';
+    setUploadState(fid, 'error');
+  }
+}
+
+function resetUpload(folder, slug) {
+  const fid = folderId(folder);
+  const st = getAgencyState(slug);
+  if (st[folder]) { st[folder].uploadedPath = null; saveAgencyState(slug, st); }
+  pendingFiles.delete(folder);
+  const nameEl = document.getElementById(`ufname-${fid}`);
+  if (nameEl) nameEl.textContent = '';
+  const goBtn = document.getElementById(`ubtn-go-${fid}`);
+  if (goBtn) goBtn.classList.add('hidden');
+  const fileInput = document.getElementById(`ufile-${fid}`);
+  if (fileInput) fileInput.value = '';
+  setUploadState(fid, 'idle');
+}
+
+async function loadEcastingStatus() {
+  const statusEl = document.getElementById('ecastingStatus');
+  const btn = document.getElementById('btnLoadEcastings');
+  if (!statusEl) return;
+  if (!supabaseClient) {
+    statusEl.innerHTML = '<p style="font-size:12px;color:#999">Supabase nicht konfiguriert.</p>';
+    return;
+  }
+  if (btn) btn.textContent = 'Laden…';
+  try {
+    const { data, error } = await supabaseClient.storage
+      .from(BUCKET).list(BUCKET_PREFIX, { limit: 200 });
+    if (error) throw error;
+    const uploaded = new Set((data || []).map(f => f.name));
+    const done = selects.filter(c => uploaded.has(c.folder)).length;
+    statusEl.innerHTML = `
+      <div style="font-size:13px;margin-bottom:10px"><strong>${done}</strong> / ${selects.length} eCastings eingegangen</div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px">
+        ${selects.map(c => {
+          const ok = uploaded.has(c.folder);
+          return `<span style="font-size:10px;padding:2px 8px;border-radius:10px;background:${ok?'#dcfce7':'#fee2e2'};color:${ok?'#15803d':'#dc2626'}">${c.name}</span>`;
+        }).join('')}
+      </div>`;
+    if (btn) btn.textContent = 'Aktualisieren';
+  } catch(err) {
+    statusEl.innerHTML = `<p style="font-size:12px;color:var(--accent)">Fehler: ${err.message}</p>`;
+    if (btn) btn.textContent = 'Neu laden';
+  }
+}
+
 // ══════════════════════════════════════
 // DATA
 // ══════════════════════════════════════
@@ -1330,7 +1544,9 @@ function showAgencyView(slug) {
   list.innerHTML = '';
 
   candidates.forEach(c => {
-    const state = savedState[c.folder] || { avail: null, video: '' };
+    const state = savedState[c.folder] || { avail: null };
+    const fid = folderId(c.folder);
+    const uploadedPath = state.uploadedPath || null;
     const imgSrc = `casting_images/${c.folder}/headshot.jpg`;
     const scene = sceneInfo[c.scene];
     const initials = getInitials(c.name);
@@ -1355,12 +1571,36 @@ function showAgencyView(slug) {
           <button class="avail-btn ${state.avail==='no'?'active-unavail':''}"
                   onclick="setAvail('${c.folder}','no',this,'${slug}')">&#10007; Nicht verfügbar</button>
         </div>
-        <div class="video-input-wrap">
-          <label class="video-input-label">Video-Link</label>
-          <input type="url" class="video-input"
-                 placeholder="eCasting-Link (WeTransfer, Dropbox, Google Drive…)"
-                 value="${escapeAttr(state.video||'')}"
-                 oninput="saveVideoLink('${c.folder}','${slug}',this.value)">
+        <div class="ecasting-upload-wrap">
+          <div class="upload-state ${uploadedPath ? '' : 'active'}" id="us-idle-${fid}">
+            <div class="upload-label">eCasting hochladen</div>
+            <div class="upload-row">
+              <input type="file" accept="video/*" id="ufile-${fid}" style="display:none"
+                     onchange="onFileSelect('${c.folder}','${slug}',this)">
+              <button class="btn-upload-pick" onclick="document.getElementById('ufile-${fid}').click()">Video wählen</button>
+              <span class="upload-filename" id="ufname-${fid}"></span>
+            </div>
+            <button class="btn-upload-go hidden" id="ubtn-go-${fid}"
+                    onclick="doUpload('${c.folder}','${slug}')">&#8593; Hochladen</button>
+          </div>
+          <div class="upload-state" id="us-uploading-${fid}">
+            <div class="progress-wrap">
+              <div class="progress-label">Upload läuft…</div>
+              <div class="progress-bar-outer"><div class="progress-bar-inner"></div></div>
+            </div>
+          </div>
+          <div class="upload-state ${uploadedPath ? 'active' : ''}" id="us-done-${fid}">
+            <div class="upload-success-row">
+              <span class="upload-success-badge">&#10003; eCasting eingereicht</span>
+              <button class="btn-upload-replace" onclick="resetUpload('${c.folder}','${slug}')">Ersetzen</button>
+            </div>
+          </div>
+          <div class="upload-state" id="us-error-${fid}">
+            <div class="upload-error-row">
+              <span class="upload-error-msg" id="uerr-${fid}"></span>
+              <button class="btn-upload-retry" onclick="resetUpload('${c.folder}','${slug}')">Erneut versuchen</button>
+            </div>
+          </div>
         </div>
       </div>
     `;
@@ -1419,11 +1659,12 @@ function exportCSV() {
   const state = getAgencyState(slug);
   const candidates = selects.filter(c => c.agency === agencyName);
 
-  const rows = [['Name','Szene','Verfügbarkeit','Video-Link']];
+  const rows = [['Name','Szene','Verfügbarkeit','eCasting']];
   candidates.forEach(c => {
-    const s = state[c.folder] || { avail: null, video: '' };
+    const s = state[c.folder] || { avail: null };
     const avail = s.avail === 'yes' ? 'Verfügbar' : s.avail === 'no' ? 'Nicht verfügbar' : '';
-    rows.push([c.name, sceneInfo[c.scene].label, avail, s.video || '']);
+    const ecasting = s.uploadedPath ? 'Hochgeladen' : (s.video || '');
+    rows.push([c.name, sceneInfo[c.scene].label, avail, ecasting]);
   });
 
   const csv = rows.map(r => r.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(',')).join('\r\n');
