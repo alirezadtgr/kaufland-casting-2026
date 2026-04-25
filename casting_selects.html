@@ -812,7 +812,6 @@
     .agency-actions { flex-direction: column; align-items: flex-start; }
   }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 
@@ -945,20 +944,15 @@
 
 <script>
 // ══════════════════════════════════════
-// SUPABASE CONFIG
-// Werte aus: Supabase Dashboard → Settings → API
+// BUNNY.NET CONFIG
+// Werte aus: bunny.net → Storage → Zone → FTP & API Access
 // ══════════════════════════════════════
-const SUPABASE_URL      = 'YOUR_SUPABASE_URL';       // z.B. https://xyz.supabase.co
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';  // eyJ...
-const BUCKET        = 'ecastings';
-const BUCKET_PREFIX = 'kaufland-2026';
+const BUNNY_ZONE    = 'YOUR_STORAGE_ZONE';  // Storage Zone Name (z.B. kaufland-casting-2026)
+const BUNNY_API_KEY = 'YOUR_API_KEY';       // Storage Zone Password / API Key
+const BUNNY_HOST    = 'storage.bunnycdn.com'; // EU: de.storage.bunnycdn.com
+const BUNNY_PREFIX  = 'kaufland-2026';
 
-let supabaseClient = null;
-try {
-  if (SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
-    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  }
-} catch(e) { console.warn('Supabase init failed:', e); }
+const BUNNY_READY = BUNNY_ZONE !== 'YOUR_STORAGE_ZONE';
 
 const pendingFiles = new Map(); // folder → File
 
@@ -967,13 +961,15 @@ function folderId(folder) {
 }
 
 async function uploadEcasting(folder, file) {
-  if (!supabaseClient) throw new Error('Supabase nicht konfiguriert. Bitte SUPABASE_URL und SUPABASE_ANON_KEY eintragen.');
+  if (!BUNNY_READY) throw new Error('Bunny nicht konfiguriert. Bitte BUNNY_ZONE und BUNNY_API_KEY eintragen.');
   const ext = (file.name.split('.').pop() || 'mp4').toLowerCase();
-  const path = `${BUCKET_PREFIX}/${folder}/ecasting.${ext}`;
-  const { error } = await supabaseClient.storage
-    .from(BUCKET)
-    .upload(path, file, { upsert: true });
-  if (error) throw error;
+  const path = `${BUNNY_PREFIX}/${folder}/ecasting.${ext}`;
+  const res = await fetch(`https://${BUNNY_HOST}/${BUNNY_ZONE}/${path}`, {
+    method: 'PUT',
+    headers: { AccessKey: BUNNY_API_KEY, 'Content-Type': 'application/octet-stream' },
+    body: file
+  });
+  if (!res.ok) throw new Error(`Upload fehlgeschlagen (HTTP ${res.status})`);
   return path;
 }
 
@@ -1033,16 +1029,18 @@ async function loadEcastingStatus() {
   const statusEl = document.getElementById('ecastingStatus');
   const btn = document.getElementById('btnLoadEcastings');
   if (!statusEl) return;
-  if (!supabaseClient) {
-    statusEl.innerHTML = '<p style="font-size:12px;color:#999">Supabase nicht konfiguriert.</p>';
+  if (!BUNNY_READY) {
+    statusEl.innerHTML = '<p style="font-size:12px;color:#999">Bunny nicht konfiguriert.</p>';
     return;
   }
   if (btn) btn.textContent = 'Laden…';
   try {
-    const { data, error } = await supabaseClient.storage
-      .from(BUCKET).list(BUCKET_PREFIX, { limit: 200 });
-    if (error) throw error;
-    const uploaded = new Set((data || []).map(f => f.name));
+    const res = await fetch(`https://${BUNNY_HOST}/${BUNNY_ZONE}/${BUNNY_PREFIX}/`, {
+      headers: { AccessKey: BUNNY_API_KEY }
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const uploaded = new Set(data.map(f => f.ObjectName));
     const done = selects.filter(c => uploaded.has(c.folder)).length;
     statusEl.innerHTML = `
       <div style="font-size:13px;margin-bottom:10px"><strong>${done}</strong> / ${selects.length} eCastings eingegangen</div>
