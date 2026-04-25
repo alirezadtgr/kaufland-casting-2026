@@ -951,6 +951,7 @@ const BUNNY_ZONE    = 'casting';
 const BUNNY_API_KEY = 'f3b44997-b9ee-40a8-ac6281705ae9-5799-41f7';
 const BUNNY_HOST    = 'storage.bunnycdn.com';
 const BUNNY_PREFIX  = 'kaufland-2026';
+const BUNNY_CDN_URL = ''; // Pull Zone URL eintragen, z.B. https://casting-status.b-cdn.net
 
 const BUNNY_READY = BUNNY_ZONE !== 'YOUR_STORAGE_ZONE';
 
@@ -1004,6 +1005,12 @@ async function doUpload(folder, slug) {
     saveAgencyState(slug, st);
     pendingFiles.delete(folder);
     setUploadState(fid, 'done');
+    // Marker-Datei schreiben (für Admin-Übersicht)
+    fetch(`https://${BUNNY_HOST}/${BUNNY_ZONE}/${BUNNY_PREFIX}/_done/${folder}`, {
+      method: 'PUT',
+      headers: { AccessKey: BUNNY_API_KEY, 'Content-Type': 'text/plain' },
+      body: new Date().toISOString()
+    }).catch(() => {});
   } catch(err) {
     const errEl = document.getElementById(`uerr-${fid}`);
     if (errEl) errEl.textContent = err.message || 'Upload fehlgeschlagen.';
@@ -1025,18 +1032,48 @@ function resetUpload(folder, slug) {
   setUploadState(fid, 'idle');
 }
 
-function loadEcastingStatus() {
+async function loadEcastingStatus() {
   const statusEl = document.getElementById('ecastingStatus');
+  const btn = document.getElementById('btnLoadEcastings');
   if (!statusEl) return;
+
+  if (!BUNNY_CDN_URL) {
+    statusEl.innerHTML = `
+      <p style="font-size:12px;color:#666;line-height:1.5;margin-bottom:10px">
+        Pull Zone noch nicht konfiguriert.<br>
+        Einreichungen im Bunny File Manager sichtbar unter <code style="background:#f3f3f3;padding:1px 5px;border-radius:3px;font-size:11px">${BUNNY_PREFIX}/_done/</code>
+      </p>
+      <a href="https://dash.bunny.net/" target="_blank"
+         style="display:inline-flex;align-items:center;gap:6px;background:#1A1A1A;color:#fff;font-size:12px;font-weight:600;border-radius:7px;padding:7px 14px;text-decoration:none">
+        Bunny File Manager &#8599;
+      </a>`;
+    return;
+  }
+
+  if (btn) btn.textContent = 'Laden…';
+  statusEl.innerHTML = '<p style="font-size:12px;color:#999">Wird geladen…</p>';
+
+  const results = await Promise.all(selects.map(c =>
+    fetch(`${BUNNY_CDN_URL}/${BUNNY_PREFIX}/_done/${c.folder}`, { method: 'HEAD' })
+      .then(r => ({ folder: c.folder, name: c.name, ok: r.ok }))
+      .catch(() => ({ folder: c.folder, name: c.name, ok: false }))
+  ));
+
+  const done = results.filter(r => r.ok).length;
   statusEl.innerHTML = `
-    <p style="font-size:12px;color:#666;line-height:1.5;margin-bottom:10px">
-      Alle eingegangenen Videos sind im Bunny File Manager sichtbar.<br>
-      Pfad: <code style="background:#f3f3f3;padding:1px 5px;border-radius:3px;font-size:11px">${BUNNY_ZONE} → ${BUNNY_PREFIX}/</code>
-    </p>
-    <a href="https://dash.bunny.net/" target="_blank"
-       style="display:inline-flex;align-items:center;gap:6px;background:#1A1A1A;color:#fff;font-size:12px;font-weight:600;border-radius:7px;padding:7px 14px;text-decoration:none">
-      Bunny File Manager &#8599;
-    </a>`;
+    <div style="font-size:13px;font-weight:700;margin-bottom:10px">
+      ${done} / ${selects.length} eCastings eingegangen
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:5px">
+      ${results.map(r => `
+        <span style="font-size:10px;padding:2px 8px;border-radius:10px;
+          background:${r.ok ? '#dcfce7' : '#f3f3f3'};
+          color:${r.ok ? '#15803d' : '#999'};
+          font-weight:${r.ok ? '700' : '400'}">
+          ${r.ok ? '&#10003; ' : ''}${r.name}
+        </span>`).join('')}
+    </div>`;
+  if (btn) btn.textContent = 'Aktualisieren';
 }
 
 // ══════════════════════════════════════
