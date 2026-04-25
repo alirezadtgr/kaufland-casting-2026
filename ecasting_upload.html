@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>eCasting Einreichung — Kaufland Ice Ice</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --accent: #CC0000;
+    --bg: #EFEFEF;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --s1: #2563EB; --s2: #16A34A; --s3: #EA580C; --s4: #9333EA;
+  }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: #1A1A1A;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .site-header {
+    background: #1A1A1A;
+    color: #fff;
+    padding: 24px;
+    text-align: center;
+  }
+  .site-header h1 { font-size: 20px; font-weight: 700; }
+  .site-header h1 span { color: var(--accent); }
+  .site-header p { font-size: 13px; color: #aaa; margin-top: 4px; }
+
+  /* CONTAINER */
+  .container {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 32px 24px 60px;
+  }
+
+  /* STEPS */
+  .step { display: none; }
+  .step.active { display: block; }
+
+  /* CARD */
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.08);
+    overflow: hidden;
+  }
+  .card-body { padding: 24px; }
+  .card-title {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .card-sub {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.5;
+    margin-bottom: 22px;
+  }
+
+  /* FORM */
+  .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+  .field label { font-size: 12px; font-weight: 600; color: #555; }
+  .field input, .field select {
+    border: 1.5px solid #ddd;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: var(--font);
+    color: #1A1A1A;
+    background: #fafafa;
+    outline: none;
+    transition: border-color .15s;
+    width: 100%;
+  }
+  .field input:focus, .field select:focus { border-color: #999; background: #fff; }
+  .field input::placeholder { color: #bbb; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  /* ERROR */
+  .error-box {
+    background: #fff5f5;
+    border: 1.5px solid #fca5a5;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: var(--accent);
+    margin-bottom: 16px;
+    display: none;
+  }
+  .error-box.visible { display: block; }
+
+  /* BUTTONS */
+  .btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 9px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: background .15s;
+    margin-top: 6px;
+  }
+  .btn-primary { background: #1A1A1A; color: #fff; }
+  .btn-primary:hover { background: #333; }
+  .btn-danger { background: var(--accent); color: #fff; }
+  .btn-danger:hover { background: #aa0000; }
+  .btn-ghost {
+    background: none;
+    color: #666;
+    border: 1.5px solid #ddd;
+    margin-top: 8px;
+  }
+  .btn-ghost:hover { border-color: #999; color: #333; }
+  .btn-upload {
+    background: var(--s2);
+    color: #fff;
+    margin-top: 8px;
+  }
+  .btn-upload:hover { background: #15803d; }
+  .btn-upload:disabled { background: #ccc; cursor: not-allowed; }
+
+  /* CONFIRM CARD */
+  .confirm-wrap {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+  .confirm-photo {
+    width: 80px;
+    height: 107px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #ddd;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .confirm-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .confirm-initials {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: #ccc;
+    font-size: 22px;
+    font-weight: 700;
+    color: #888;
+  }
+  .confirm-info { flex: 1; }
+  .confirm-name { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .confirm-agency { font-size: 13px; color: #666; margin-bottom: 8px; }
+  .scene-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+    border-radius: 8px;
+    padding: 3px 9px;
+  }
+  .scene-badge.s1 { background: var(--s1); }
+  .scene-badge.s2 { background: var(--s2); }
+  .scene-badge.s3 { background: var(--s3); }
+  .scene-badge.s4 { background: var(--s4); }
+
+  /* UPLOAD */
+  .upload-file-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .btn-pick {
+    border: 1.5px solid #ddd;
+    background: #fff;
+    border-radius: 8px;
+    padding: 9px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font);
+    color: #444;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .btn-pick:hover { border-color: #999; color: #222; }
+  .file-name {
+    font-size: 12px;
+    color: #555;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* PROGRESS */
+  .progress-wrap { margin: 12px 0; display: none; }
+  .progress-wrap.visible { display: block; }
+  .progress-label { font-size: 12px; color: #888; margin-bottom: 5px; }
+  .progress-bar-outer { height: 6px; background: #eee; border-radius: 3px; overflow: hidden; }
+  .progress-bar-inner {
+    height: 100%;
+    background: var(--s2);
+    border-radius: 3px;
+    width: 60%;
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  /* SUCCESS */
+  .success-box {
+    background: #dcfce7;
+    border-radius: 10px;
+    padding: 24px;
+    text-align: center;
+  }
+  .success-icon { font-size: 40px; margin-bottom: 10px; }
+  .success-title { font-size: 18px; font-weight: 700; color: #15803d; margin-bottom: 6px; }
+  .success-sub { font-size: 13px; color: #166534; line-height: 1.5; }
+
+  /* ALREADY DONE */
+  .already-box {
+    background: #eff6ff;
+    border-radius: 10px;
+    padding: 16px;
+    font-size: 13px;
+    color: #1d4ed8;
+    margin-bottom: 14px;
+    display: none;
+  }
+  .already-box.visible { display: block; }
+
+  @media (max-width: 480px) {
+    .container { padding: 20px 16px 40px; }
+    .field-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <h1>Kaufland Ice Ice — <span>eCasting</span></h1>
+  <p>Drehtag: Mittwoch, 29. April 2026</p>
+</header>
+
+<div class="container">
+
+  <!-- ── STEP 1: FORM ── -->
+  <div class="step active" id="stepForm">
+    <div class="card">
+      <div class="card-body">
+        <div class="card-title">Dein eCasting einreichen</div>
+        <p class="card-sub">Bitte gib deine Daten ein, damit wir dich in unserem System finden können.</p>
+
+        <div class="error-box" id="errorBox"></div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="inputVorname">Vorname</label>
+            <input type="text" id="inputVorname" placeholder="z.B. Aaron" autocomplete="given-name">
+          </div>
+          <div class="field">
+            <label for="inputNachname">Nachname</label>
+            <input type="text" id="inputNachname" placeholder="z.B. Breyer" autocomplete="family-name">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="inputAgentur">Agentur</label>
+          <select id="inputAgentur">
+            <option value="">— Agentur wählen —</option>
+            <option>Fangfrisch Berlin</option>
+            <option>Splendide Models</option>
+            <option>M4 Models</option>
+            <option>Smiling Models</option>
+            <option>Viva Serviceagentur</option>
+            <option>Unknown Agency</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="inputRolle">Rolle / Szene</label>
+          <select id="inputRolle">
+            <option value="">— Szene wählen —</option>
+            <option value="s1">Szene 1 – Parkplatz</option>
+            <option value="s2">Szene 2 – Kühlregal</option>
+            <option value="s3">Szene 3 – Stau</option>
+            <option value="s4">Szene 4 – Vorgarten</option>
+          </select>
+        </div>
+
+        <button class="btn btn-primary" onclick="handleSearch()">Weiter &#8594;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 2: CONFIRM ── -->
+  <div class="step" id="stepConfirm">
+    <div class="card">
+      <div class="card-body">
+        <div class="card-title">Bist du das?</div>
+        <p class="card-sub">Bitte bestätige, dass wir die richtige Person gefunden haben.</p>
+
+        <div class="confirm-wrap">
+          <div class="confirm-photo">
+            <img id="confirmPhoto" src="" alt="">
+            <div class="confirm-initials" id="confirmInitials"></div>
+          </div>
+          <div class="confirm-info">
+            <div class="confirm-name" id="confirmName"></div>
+            <div class="confirm-agency" id="confirmAgency"></div>
+            <span class="scene-badge" id="confirmBadge"></span>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="goToUpload()">Ja, das bin ich &#8594;</button>
+        <button class="btn btn-ghost" onclick="goBack()">&#8592; Zurück / Nicht ich</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 3: UPLOAD ── -->
+  <div class="step" id="stepUpload">
+    <div class="card">
+      <div class="card-body">
+        <div class="card-title" id="uploadTitle">eCasting hochladen</div>
+        <p class="card-sub">Bitte lade dein Video direkt hoch (MP4, MOV o.ä., max. Größe: unbegrenzt).</p>
+
+        <div class="already-box" id="alreadyBox">
+          Du hast bereits ein eCasting eingereicht. Du kannst es unten überschreiben.
+        </div>
+
+        <div id="uploadArea">
+          <div class="upload-file-row">
+            <input type="file" id="fileInput" accept="video/*" style="display:none" onchange="onFileChange(this)">
+            <button class="btn-pick" onclick="document.getElementById('fileInput').click()">Video auswählen</button>
+            <span class="file-name" id="fileName">Keine Datei gewählt</span>
+          </div>
+
+          <div class="progress-wrap" id="progressWrap">
+            <div class="progress-label">Upload läuft…</div>
+            <div class="progress-bar-outer"><div class="progress-bar-inner"></div></div>
+          </div>
+
+          <button class="btn btn-upload" id="btnUpload" onclick="doUpload()" disabled>
+            &#8593; Jetzt hochladen
+          </button>
+
+          <div class="error-box" id="uploadErrorBox" style="margin-top:12px"></div>
+        </div>
+
+        <div id="successArea" style="display:none">
+          <div class="success-box">
+            <div class="success-icon">&#10003;</div>
+            <div class="success-title">eCasting eingereicht!</div>
+            <p class="success-sub">Vielen Dank. Dein Video ist bei uns eingegangen.<br>Wir melden uns bei Bedarf bei deiner Agentur.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════
+// BUNNY CONFIG
+// ══════════════════════════════════════
+const BUNNY_ZONE    = 'casting';
+const BUNNY_API_KEY = 'f3b44997-b9ee-40a8-ac6281705ae9-5799-41f7';
+const BUNNY_HOST    = 'storage.bunnycdn.com';
+const BUNNY_PREFIX  = 'kaufland-2026';
+
+// ══════════════════════════════════════
+// DATA
+// ══════════════════════════════════════
+const selects = [
+  {name:"ALEKS",folder:"ALEKS",agency:"M4 Models",scene:"s2"},
+  {name:"Aaron Breyer",folder:"Aaron_Breyer",agency:"Fangfrisch Berlin",scene:"s2"},
+  {name:"Akke Visschers",folder:"Akke_Visschers",agency:"Unknown Agency",scene:"s1"},
+  {name:"Alba",folder:"Alba",agency:"Splendide Models",scene:"s1"},
+  {name:"Alessija",folder:"Alessija",agency:"Splendide Models",scene:"s1"},
+  {name:"Alex Daff",folder:"Alex_Daff",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Alexander Bonnet",folder:"Alexander_Bonnet",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Amelie Zappe",folder:"Amelie_Zappe",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Amon Sander Seidler",folder:"Amon_Sander_Seidler",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Anamika Datta",folder:"Anamika_Datta",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Angelo",folder:"Angelo",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Angelo-f",folder:"Angelo-f",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Anil",folder:"Anil",agency:"Splendide Models",scene:"s3"},
+  {name:"Anna Jensen",folder:"Anna_Jensen",agency:"Fangfrisch Berlin",scene:"s4"},
+  {name:"Annabel Karmelk",folder:"Annabel_Karmelk",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Anne Sophie Pied",folder:"Anne_Sophie_Pied",agency:"Splendide Models",scene:"s1"},
+  {name:"Anton Wiegand",folder:"Anton_Wiegand",agency:"Fangfrisch Berlin",scene:"s3"},
+  {name:"Antonia Langenohl",folder:"Antonia_Langenohl",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Antonia Schone",folder:"Antonia_Schone",agency:"Fangfrisch Berlin",scene:"s3"},
+  {name:"BASTIAN",folder:"BASTIAN",agency:"M4 Models",scene:"s3"},
+  {name:"Beate Funke",folder:"Beate_Funke",agency:"Fangfrisch Berlin",scene:"s4"},
+  {name:"Beatrice",folder:"Beatrice",agency:"Smiling Models",scene:"s3"},
+  {name:"Benjamin Knaak",folder:"Benjamin_Knaak",agency:"Fangfrisch Berlin",scene:"s3"},
+  {name:"Benjamin Orlando",folder:"Benjamin_Orlando",agency:"Unknown Agency",scene:"s2"},
+  {name:"Birgit Von Moller",folder:"Birgit_Von_Moller",agency:"Fangfrisch Berlin",scene:"s4"},
+  {name:"Carlo Klingler",folder:"Carlo_Klingler",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Cecile Courouble",folder:"Cecile_Courouble",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Chiara Noack",folder:"Chiara_Noack",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Christopher Schmidt",folder:"Christopher_Schmidt",agency:"Fangfrisch Berlin",scene:"s4"},
+  {name:"Coco Weber",folder:"Coco_Weber",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Cyrille Eenshuistra",folder:"Cyrille_Eenshuistra",agency:"Fangfrisch Berlin",scene:"s4"},
+  {name:"Dennis Beltchikov",folder:"Dennis_Beltchikov",agency:"Fangfrisch Berlin",scene:"s2"},
+  {name:"Elisa",folder:"Elisa",agency:"Splendide Models",scene:"s2"},
+  {name:"Fabiana Bogiatzoglou",folder:"Fabiana_Bogiatzoglou",agency:"Fangfrisch Berlin",scene:"s2"},
+  {name:"Fabienne Stera",folder:"Fabienne_Stera",agency:"Fangfrisch Berlin",scene:"s2"},
+  {name:"Felix Rahmer",folder:"Felix_Rahmer",agency:"Fangfrisch Berlin",scene:"s2"},
+  {name:"Gerd Welkisch",folder:"Gerd_Welkisch",agency:"Fangfrisch Berlin",scene:"s4"},
+  {name:"Harald Schindel",folder:"Harald_Schindel",agency:"Fangfrisch Berlin",scene:"s4"},
+  {name:"Ilona Malganova",folder:"Ilona_Malganova",agency:"Fangfrisch Berlin",scene:"s3"},
+  {name:"Ines Bartholomaus",folder:"Ines_Bartholomaus",agency:"Fangfrisch Berlin",scene:"s4"},
+  {name:"Jakob",folder:"Jakob",agency:"Splendide Models",scene:"s1"},
+  {name:"Jameela",folder:"Jameela",agency:"Unknown Agency",scene:"s4"},
+  {name:"Janin Torzewski",folder:"Janin_Torzewski",agency:"Splendide Models",scene:"s3"},
+  {name:"Jasmin",folder:"Jasmin",agency:"Splendide Models",scene:"s4"},
+  {name:"Joachim Jasiek",folder:"Joachim_Jasiek",agency:"Fangfrisch Berlin",scene:"s4"},
+  {name:"Jozsef Levai",folder:"Jozsef_Levai",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Jurgen Fath",folder:"Jurgen_Fath",agency:"Fangfrisch Berlin",scene:"s4"},
+  {name:"Kallin Mueller",folder:"Kallin_Mueller",agency:"Unknown Agency",scene:"s2"},
+  {name:"Konrad Abramowski",folder:"Konrad_Abramowski",agency:"Fangfrisch Berlin",scene:"s2"},
+  {name:"LAURENZ ZIMMERMANN",folder:"LAURENZ_ZIMMERMANN",agency:"Fangfrisch Berlin",scene:"s2"},
+  {name:"LESLIE",folder:"LESLIE",agency:"M4 Models",scene:"s3"},
+  {name:"Lasse Dressler",folder:"Lasse_Dressler",agency:"Fangfrisch Berlin",scene:"s2"},
+  {name:"Lea Wolfram",folder:"Lea_Wolfram",agency:"Unknown Agency",scene:"s2"},
+  {name:"Leo",folder:"Leo",agency:"Splendide Models",scene:"s3"},
+  {name:"Leonard",folder:"Leonard",agency:"Splendide Models",scene:"s3"},
+  {name:"Lina Wetjen",folder:"Lina_Wetjen",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Liv",folder:"Liv",agency:"Splendide Models",scene:"s1"},
+  {name:"Liv Salvisberg",folder:"Liv_Salvisberg",agency:"Unknown Agency",scene:"s2"},
+  {name:"Lore Lotte Peter",folder:"Lore_Lotte_Peter",agency:"Fangfrisch Berlin",scene:"s3"},
+  {name:"Louis Braun",folder:"Louis_Braun",agency:"Fangfrisch Berlin",scene:"s2"},
+  {name:"Louis Wiener",folder:"Louis_Wiener",agency:"Fangfrisch Berlin",scene:"s3"},
+  {name:"Luca St",folder:"Luca_St",agency:"Splendide Models",scene:"s3"},
+  {name:"Lucas Avid Hubner",folder:"Lucas_Avid_Hubner",agency:"Fangfrisch Berlin",scene:"s3"},
+  {name:"Luisa-f",folder:"Luisa-f",agency:"Fangfrisch Berlin",scene:"s3"},
+  {name:"Luke Schafer",folder:"Luke_Schafer",agency:"Fangfrisch Berlin",scene:"s3"},
+  {name:"MARCUS ZIERKE",folder:"MARCUS_ZIERKE",agency:"Splendide Models",scene:"s1"},
+  {name:"Marc Soellinger",folder:"Marc_Soellinger",agency:"Unknown Agency",scene:"s1"},
+  {name:"Marie Mai",folder:"Marie_Mai",agency:"Splendide Models",scene:"s2"},
+  {name:"Marq",folder:"Marq",agency:"Smiling Models",scene:"s3"},
+  {name:"Martin",folder:"Martin",agency:"Smiling Models",scene:"s2"},
+  {name:"Marvin Hug",folder:"Marvin_Hug",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Mathilda Bordfeld",folder:"Mathilda_Bordfeld",agency:"Fangfrisch Berlin",scene:"s3"},
+  {name:"Maxine Riewe",folder:"Maxine_Riewe",agency:"Splendide Models",scene:"s1"},
+  {name:"Millicint Hayes",folder:"Millicint_Hayes",agency:"Fangfrisch Berlin",scene:"s3"},
+  {name:"Monika Stenzel",folder:"Monika_Stenzel",agency:"Fangfrisch Berlin",scene:"s4"},
+  {name:"Nazar Zhmuro",folder:"Nazar_Zhmuro",agency:"Unknown Agency",scene:"s3"},
+  {name:"Nele Luisa",folder:"Nele_Luisa",agency:"Unknown Agency",scene:"s2"},
+  {name:"Nina Julia",folder:"Nina_Julia",agency:"Unknown Agency",scene:"s2"},
+  {name:"Otis Hagen",folder:"Otis_Hagen",agency:"Fangfrisch Berlin",scene:"s4"},
+  {name:"Patrick",folder:"Patrick",agency:"Smiling Models",scene:"s1"},
+  {name:"Paula Breuer",folder:"Paula_Breuer",agency:"Unknown Agency",scene:"s3"},
+  {name:"Pegah",folder:"Pegah",agency:"Splendide Models",scene:"s1"},
+  {name:"Perry Frenzel",folder:"Perry_Frenzel",agency:"Unknown Agency",scene:"s2"},
+  {name:"Pit",folder:"Pit",agency:"Splendide Models",scene:"s3"},
+  {name:"Rabia",folder:"Rabia",agency:"Splendide Models",scene:"s4"},
+  {name:"Rachel",folder:"Rachel",agency:"Splendide Models",scene:"s2"},
+  {name:"Rosalie",folder:"Rosalie",agency:"Splendide Models",scene:"s2"},
+  {name:"SAORI",folder:"SAORI",agency:"M4 Models",scene:"s1"},
+  {name:"Selina Schaper",folder:"Selina_Schaper",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Sen Br Cker",folder:"Sen_Br_Cker",agency:"Unknown Agency",scene:"s3"},
+  {name:"Simone Muller Pradella",folder:"Simone_Muller_Pradella",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Stefan Wachsmuth",folder:"Stefan_Wachsmuth",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"Susanne Jo",folder:"Susanne_Jo",agency:"Splendide Models",scene:"s4"},
+  {name:"Valan Sharp",folder:"Valan_Sharp",agency:"Fangfrisch Berlin",scene:"s1"},
+  {name:"viva serviceagentur gmbh (1)",folder:"viva_serviceagentur_gmbh_(1)",agency:"Viva Serviceagentur",scene:"s1"},
+  {name:"viva serviceagentur gmbh (10)",folder:"viva_serviceagentur_gmbh_(10)",agency:"Viva Serviceagentur",scene:"s1"},
+  {name:"viva serviceagentur gmbh (4)",folder:"viva_serviceagentur_gmbh_(4)",agency:"Viva Serviceagentur",scene:"s3"},
+  {name:"viva serviceagentur gmbh (6)",folder:"viva_serviceagentur_gmbh_(6)",agency:"Viva Serviceagentur",scene:"s4"},
+];
+
+const sceneInfo = {
+  s1: { label: "Szene 1 – Parkplatz",  color: "#2563EB" },
+  s2: { label: "Szene 2 – Kühlregal",  color: "#16A34A" },
+  s3: { label: "Szene 3 – Stau",       color: "#EA580C" },
+  s4: { label: "Szene 4 – Vorgarten",  color: "#9333EA" },
+};
+
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
+let matchedTalent = null;
+let selectedFile  = null;
+
+// ══════════════════════════════════════
+// STEP 1 → STEP 2: SEARCH
+// ══════════════════════════════════════
+function normalize(s) {
+  return s.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+function findTalent(vorname, nachname, agency, scene) {
+  const fullName  = normalize(`${vorname} ${nachname}`);
+  const firstName = normalize(vorname);
+  return selects.find(c => {
+    const cName = normalize(c.name);
+    const nameMatch = cName === fullName || (nachname.trim() === '' && cName === firstName);
+    return nameMatch && c.agency === agency && c.scene === scene;
+  });
+}
+
+function handleSearch() {
+  const vorname = document.getElementById('inputVorname').value;
+  const nachname = document.getElementById('inputNachname').value;
+  const agency  = document.getElementById('inputAgentur').value;
+  const scene   = document.getElementById('inputRolle').value;
+  const errBox  = document.getElementById('errorBox');
+
+  errBox.classList.remove('visible');
+
+  if (!vorname.trim()) { showError('Bitte Vorname eingeben.'); return; }
+  if (!agency)         { showError('Bitte Agentur auswählen.'); return; }
+  if (!scene)          { showError('Bitte Szene auswählen.'); return; }
+
+  const talent = findTalent(vorname, nachname, agency, scene);
+
+  if (!talent) {
+    showError('Wir konnten dich leider nicht finden. Bitte überprüfe deine Angaben oder wende dich an deine Agentur.');
+    return;
+  }
+
+  matchedTalent = talent;
+  showConfirm(talent);
+}
+
+function showError(msg) {
+  const box = document.getElementById('errorBox');
+  box.textContent = msg;
+  box.classList.add('visible');
+}
+
+// ══════════════════════════════════════
+// STEP 2: CONFIRM
+// ══════════════════════════════════════
+function showConfirm(talent) {
+  const scene = sceneInfo[talent.scene];
+  const initials = talent.name.split(/\s+/).slice(0,2).map(w => w[0]||'').join('').toUpperCase();
+
+  const img = document.getElementById('confirmPhoto').querySelector('img');
+  const ini = document.getElementById('confirmInitials');
+  img.src = `casting_images/${talent.folder}/headshot.jpg`;
+  img.onerror = () => { img.style.display='none'; ini.style.display='flex'; };
+  ini.textContent = initials;
+
+  document.getElementById('confirmName').textContent    = talent.name;
+  document.getElementById('confirmAgency').textContent  = talent.agency;
+
+  const badge = document.getElementById('confirmBadge');
+  badge.textContent  = scene.label;
+  badge.className    = `scene-badge ${talent.scene}`;
+
+  showStep('stepConfirm');
+}
+
+function goBack() {
+  matchedTalent = null;
+  showStep('stepForm');
+}
+
+// ══════════════════════════════════════
+// STEP 3: UPLOAD
+// ══════════════════════════════════════
+function goToUpload() {
+  const storageKey = `ecasting_uploaded_${matchedTalent.folder}`;
+  const alreadyBox = document.getElementById('alreadyBox');
+  if (localStorage.getItem(storageKey)) {
+    alreadyBox.classList.add('visible');
+  }
+  document.getElementById('uploadTitle').textContent = `eCasting hochladen — ${matchedTalent.name}`;
+  showStep('stepUpload');
+}
+
+function onFileChange(input) {
+  if (!input.files || !input.files[0]) return;
+  selectedFile = input.files[0];
+  document.getElementById('fileName').textContent = selectedFile.name;
+  document.getElementById('btnUpload').disabled = false;
+  document.getElementById('uploadErrorBox').classList.remove('visible');
+}
+
+async function doUpload() {
+  if (!selectedFile || !matchedTalent) return;
+
+  const btn      = document.getElementById('btnUpload');
+  const progress = document.getElementById('progressWrap');
+  const errBox   = document.getElementById('uploadErrorBox');
+
+  btn.disabled = true;
+  progress.classList.add('visible');
+  errBox.classList.remove('visible');
+
+  try {
+    const ext  = (selectedFile.name.split('.').pop() || 'mp4').toLowerCase();
+    const path = `${BUNNY_PREFIX}/${matchedTalent.folder}/ecasting.${ext}`;
+
+    const res = await fetch(`https://${BUNNY_HOST}/${BUNNY_ZONE}/${path}`, {
+      method: 'PUT',
+      headers: { AccessKey: BUNNY_API_KEY, 'Content-Type': 'application/octet-stream' },
+      body: selectedFile
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    // Marker für Admin-Tracking
+    fetch(`https://${BUNNY_HOST}/${BUNNY_ZONE}/${BUNNY_PREFIX}/_done/${matchedTalent.folder}`, {
+      method: 'PUT',
+      headers: { AccessKey: BUNNY_API_KEY, 'Content-Type': 'text/plain' },
+      body: new Date().toISOString()
+    }).catch(() => {});
+
+    localStorage.setItem(`ecasting_uploaded_${matchedTalent.folder}`, '1');
+
+    progress.classList.remove('visible');
+    document.getElementById('uploadArea').style.display  = 'none';
+    document.getElementById('successArea').style.display = 'block';
+
+  } catch(err) {
+    progress.classList.remove('visible');
+    btn.disabled = false;
+    errBox.textContent = `Upload fehlgeschlagen: ${err.message}`;
+    errBox.classList.add('visible');
+  }
+}
+
+// ══════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════
+function showStep(id) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+</script>
+</body>
+</html>
