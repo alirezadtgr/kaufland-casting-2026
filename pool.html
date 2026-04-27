@@ -238,19 +238,12 @@
           <label class="field-label">Rolle</label>
           <select class="field-select" id="inputRole">
             <option value="main">Hauptrolle</option>
-            <option value="extra" selected>Extra / Hintergrund</option>
+            <option value="joggerin" selected>Joggerin</option>
+            <option value="kind">Kind</option>
+            <option value="nachbar">Nachbar:in</option>
+            <option value="extra">Extra</option>
           </select>
         </div>
-      </div>
-      <div class="field-group">
-        <label class="field-label">Subtyp</label>
-        <select class="field-select" id="inputSubtype">
-          <option value="">— Kein Subtyp</option>
-          <option value="Joggerin">Joggerin</option>
-          <option value="Kind">Kind</option>
-          <option value="Nachbar:in">Nachbar:in</option>
-          <option value="Extra">Extra</option>
-        </select>
       </div>
     </div>
     <div class="modal-footer">
@@ -404,7 +397,7 @@ function renderGrid() {
     const card = document.createElement('div');
     card.className = 'pool-card' + (isAdded ? ' added' : '');
     const overlay = isAdded
-      ? `<div class="added-overlay">&#10003; ${addedEntry?.subtype || sceneInfo[addedEntry?.scene]?.label.split('–')[0].trim() || ''}</div>`
+      ? `<div class="added-overlay">&#10003; ${addedEntry?.role || sceneInfo[addedEntry?.scene]?.label.split('–')[0].trim() || ''}</div>`
       : `<button class="add-overlay" onclick="openAddModal('${CSS.escape(folder)}')">+ Hinzufügen</button>`;
     card.innerHTML = `
       <div class="pool-img-wrap">
@@ -427,8 +420,7 @@ function openAddModal(folder) {
   document.getElementById('inputName').value = name;
   document.getElementById('inputAgency').value = '';
   document.getElementById('inputScene').value = 's4';
-  document.getElementById('inputRole').value = 'extra';
-  document.getElementById('inputSubtype').value = '';
+  document.getElementById('inputRole').value = 'joggerin';
   document.getElementById('addModal').classList.add('open');
   document.body.style.overflow = 'hidden';
   document.getElementById('inputAgency').focus();
@@ -445,13 +437,10 @@ function confirmAdd() {
   const name    = document.getElementById('inputName').value.trim() || folderToName(currentFolder);
   const agency  = document.getElementById('inputAgency').value.trim() || '—';
   const scene   = document.getElementById('inputScene').value;
-  const role    = document.getElementById('inputRole').value;
-  const subtype = document.getElementById('inputSubtype').value;
+  const role = document.getElementById('inputRole').value;
 
   addedSelects = addedSelects.filter(s => s.folder !== currentFolder);
-  const entry = { name, folder: currentFolder, agency, scene, role, images:['headshot.jpg'] };
-  if (subtype) entry.subtype = subtype;
-  addedSelects.push(entry);
+  addedSelects.push({ name, folder: currentFolder, agency, scene, role, images:['headshot.jpg'] });
 
   saveAddedSelects();
   renderAddedBar();
@@ -480,7 +469,8 @@ function renderAddedBar() {
   list.innerHTML = '';
   addedSelects.forEach(c => {
     const si = sceneInfo[c.scene] || { label: c.scene, color:'#999' };
-    const roleLabel = c.subtype || (c.role === 'extra' ? 'Extra' : 'Hauptrolle');
+    const roleLabels = {main:'Hauptrolle',joggerin:'Joggerin',kind:'Kind',nachbar:'Nachbar:in',extra:'Extra'};
+    const roleLabel = roleLabels[c.role] || c.role || '—';
     const item = document.createElement('div');
     item.className = 'added-item';
     item.innerHTML = `
@@ -506,8 +496,7 @@ function toggleAddedBar() {
 function openExportModal() {
   if (addedSelects.length === 0) return;
   const lines = addedSelects.map(c => {
-    const sub = c.subtype ? `,subtype:"${c.subtype}"` : '';
-    return `  {name:"${c.name}",folder:"${c.folder}",agency:"${c.agency}",scene:"${c.scene}",role:"${c.role}"${sub},images:["headshot.jpg"]},`;
+    return `  {name:"${c.name}",folder:"${c.folder}",agency:"${c.agency}",scene:"${c.scene}",role:"${c.role}",images:["headshot.jpg"]},`;
   });
   document.getElementById('exportCode').value = lines.join('\n');
   document.getElementById('exportModal').classList.add('open');
