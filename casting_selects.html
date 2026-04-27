@@ -801,6 +801,55 @@
   .upload-state { display: none; }
   .upload-state.active { display: block; }
 
+  /* ── SHORTLIST STAR ── */
+  .star-btn {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+    width: 28px;
+    height: 28px;
+    background: rgba(0,0,0,.42);
+    border: none;
+    border-radius: 50%;
+    font-size: 15px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    color: rgba(255,255,255,.5);
+    transition: background .15s, transform .12s, color .12s;
+    line-height: 1;
+    padding: 0;
+  }
+  .star-btn:hover { background: rgba(0,0,0,.7); transform: scale(1.15); color: #F59E0B; }
+  .star-btn.starred { color: #F59E0B; background: rgba(0,0,0,.55); }
+  .talent-card.starred { outline: 2px solid #F59E0B; outline-offset: -2px; }
+
+  .filter-btn.shortlist-btn.active { background: #F59E0B; border-color: #F59E0B; color: #fff; }
+
+  .lb-star-btn {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    width: 36px;
+    height: 36px;
+    background: rgba(0,0,0,.5);
+    border: none;
+    border-radius: 50%;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    color: rgba(255,255,255,.55);
+    transition: background .15s, color .12s, transform .12s;
+    padding: 0;
+  }
+  .lb-star-btn:hover { background: rgba(0,0,0,.75); color: #F59E0B; transform: scale(1.1); }
+  .lb-star-btn.starred { color: #F59E0B; }
+
   /* ── RESPONSIVE ── */
   @media (max-width: 600px) {
     .talent-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
@@ -835,6 +884,8 @@
           <span><span class="stat-dot" style="background:var(--s2)"></span><strong id="s2count">0</strong></span>
           <span><span class="stat-dot" style="background:var(--s3)"></span><strong id="s3count">0</strong></span>
           <span><span class="stat-dot" style="background:var(--s4)"></span><strong id="s4count">0</strong></span>
+          <span class="sep">|</span>
+          <span style="color:#F59E0B">&#9733; <strong id="shortlistCount">0</strong></span>
         </div>
         <button class="btn-agency-portal" onclick="openAgencyModal()">Agentur-Portal &#8594;</button>
       </div>
@@ -850,6 +901,7 @@
         <button class="filter-btn" data-scene="s3" onclick="setSceneFilter('s3',this)">Szene 3 – Stau</button>
         <button class="filter-btn" data-scene="s4" onclick="setSceneFilter('s4',this)">Szene 4 – Vorgarten</button>
       </div>
+      <button class="filter-btn shortlist-btn" id="shortlistFilterBtn" onclick="toggleShortlistFilter(this)">&#9733; Shortlist</button>
       <select class="agency-select" id="agencyFilter" onchange="setAgencyFilter(this.value)">
         <option value="all">Alle Agenturen</option>
       </select>
@@ -915,6 +967,7 @@
       <button class="lb-nav lb-prev hidden" id="lbPrev" onclick="lbNav(-1)">&#8249;</button>
       <button class="lb-nav lb-next hidden" id="lbNext" onclick="lbNav(1)">&#8250;</button>
       <div class="lb-counter hidden" id="lbCounter"></div>
+      <button class="lb-star-btn" id="lbStarBtn" title="Zur Shortlist hinzufügen" onclick="toggleShortlistFromLightbox()">&#9733;</button>
     </div>
     <div class="lb-thumbs hidden" id="lbThumbs"></div>
     <div class="lightbox-meta">
@@ -954,6 +1007,71 @@ const BUNNY_PREFIX  = 'kaufland-2026';
 const BUNNY_CDN_URL = 'https://casting-status.b-cdn.net';
 
 const BUNNY_READY = BUNNY_ZONE !== 'YOUR_STORAGE_ZONE';
+
+// ══════════════════════════════════════
+// SHORTLIST
+// ══════════════════════════════════════
+const SHORTLIST_KEY = 'shortlist_kaufland2026';
+let shortlistOnly = false;
+let lbCurrentCandidate = null;
+
+function getShortlist() {
+  try { return new Set(JSON.parse(localStorage.getItem(SHORTLIST_KEY) || '[]')); } catch(e) { return new Set(); }
+}
+function saveShortlist(set) {
+  try { localStorage.setItem(SHORTLIST_KEY, JSON.stringify([...set])); } catch(e) {}
+}
+
+function toggleShortlist(folder, e) {
+  e.stopPropagation();
+  const sl = getShortlist();
+  const nowStarred = !sl.has(folder);
+  if (nowStarred) sl.add(folder); else sl.delete(folder);
+  saveShortlist(sl);
+  // Update all card star-btns & outlines for this folder
+  const fid = folderId(folder);
+  document.querySelectorAll(`.star-btn[data-folder="${fid}"]`).forEach(btn => {
+    btn.classList.toggle('starred', nowStarred);
+    btn.title = nowStarred ? 'Aus Shortlist entfernen' : 'Zur Shortlist hinzufügen';
+  });
+  document.querySelectorAll(`.talent-card[data-folder="${fid}"]`).forEach(card => {
+    card.classList.toggle('starred', nowStarred);
+  });
+  updateStats();
+  if (shortlistOnly) renderGrid();
+}
+
+function toggleShortlistFromLightbox() {
+  if (!lbCurrentCandidate) return;
+  const folder = lbCurrentCandidate.folder;
+  const sl = getShortlist();
+  const nowStarred = !sl.has(folder);
+  if (nowStarred) sl.add(folder); else sl.delete(folder);
+  saveShortlist(sl);
+  // Update lightbox button
+  const btn = document.getElementById('lbStarBtn');
+  if (btn) {
+    btn.classList.toggle('starred', nowStarred);
+    btn.title = nowStarred ? 'Aus Shortlist entfernen' : 'Zur Shortlist hinzufügen';
+  }
+  // Update card in grid
+  const fid = folderId(folder);
+  document.querySelectorAll(`.star-btn[data-folder="${fid}"]`).forEach(b => {
+    b.classList.toggle('starred', nowStarred);
+    b.title = nowStarred ? 'Aus Shortlist entfernen' : 'Zur Shortlist hinzufügen';
+  });
+  document.querySelectorAll(`.talent-card[data-folder="${fid}"]`).forEach(card => {
+    card.classList.toggle('starred', nowStarred);
+  });
+  updateStats();
+  if (shortlistOnly) renderGrid();
+}
+
+function toggleShortlistFilter(btn) {
+  shortlistOnly = !shortlistOnly;
+  btn.classList.toggle('active', shortlistOnly);
+  renderGrid();
+}
 
 const pendingFiles = new Map(); // folder → File
 
@@ -1238,6 +1356,7 @@ function updateStats() {
   ['s1','s2','s3','s4'].forEach(s => {
     document.getElementById(s+'count').textContent = selects.filter(c => c.scene === s).length;
   });
+  document.getElementById('shortlistCount').textContent = getShortlist().size;
 }
 
 // ══════════════════════════════════════
@@ -1270,10 +1389,12 @@ function setAgencyFilter(val) {
 }
 
 function filteredSelects() {
+  const sl = shortlistOnly ? getShortlist() : null;
   return selects.filter(c => {
     const sceneOk  = currentScene === 'all' || c.scene === currentScene;
     const agencyOk = currentAgency === 'all' || c.agency === currentAgency;
-    return sceneOk && agencyOk;
+    const slOk     = !shortlistOnly || sl.has(c.folder);
+    return sceneOk && agencyOk && slOk;
   });
 }
 
@@ -1288,12 +1409,18 @@ function makeTalentCard(c) {
   const imgSrc = `casting_images/${c.folder}/headshot.jpg`;
   const initials = getInitials(c.name);
   const scene = sceneInfo[c.scene];
+  const starred = getShortlist().has(c.folder);
+  const fid = folderId(c.folder);
   const div = document.createElement('div');
-  div.className = 'talent-card';
+  div.className = 'talent-card' + (starred ? ' starred' : '');
+  div.dataset.folder = fid;
   div.innerHTML = `
     <div class="card-image-wrap">
       <img src="${imgSrc}" alt="${c.name}" onerror="imgFallback(this)">
       <div class="card-initials-fallback">${initials}</div>
+      <button class="star-btn ${starred ? 'starred' : ''}" data-folder="${fid}"
+              title="${starred ? 'Aus Shortlist entfernen' : 'Zur Shortlist hinzufügen'}"
+              onclick="toggleShortlist('${c.folder}',event)">&#9733;</button>
     </div>
     <div class="card-info">
       <div class="card-name">${c.name}</div>
@@ -1358,6 +1485,7 @@ function renderGrid() {
 let lbImages = [], lbIdx = 0;
 
 function openLightbox(c) {
+  lbCurrentCandidate = c;
   lbImages = c.images && c.images.length ? c.images : ['headshot.jpg'];
   lbIdx = 0;
   const scene = sceneInfo[c.scene];
@@ -1366,6 +1494,11 @@ function openLightbox(c) {
   const badge = document.getElementById('lbBadge');
   badge.textContent = scene.label;
   badge.className = `scene-badge ${c.scene}`;
+  // Star state
+  const lbStar = document.getElementById('lbStarBtn');
+  const starred = getShortlist().has(c.folder);
+  lbStar.classList.toggle('starred', starred);
+  lbStar.title = starred ? 'Aus Shortlist entfernen' : 'Zur Shortlist hinzufügen';
   // Build thumbs
   const thumbsEl = document.getElementById('lbThumbs');
   thumbsEl.innerHTML = '';
