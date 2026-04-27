@@ -945,6 +945,7 @@
           <span class="sep">|</span>
           <span style="color:#F59E0B">&#9733; <strong id="shortlistCount">0</strong></span>
         </div>
+        <button class="btn-agency-portal" id="btnDownloadAll" onclick="downloadAllZip()">&#8595; Alle herunterladen</button>
         <button class="btn-agency-portal" onclick="openAgencyModal()">Agentur-Portal &#8594;</button>
       </div>
     </div>
@@ -1147,41 +1148,43 @@ function updateShortlistExportBar() {
   if (lbl) lbl.textContent = count;
 }
 
-async function downloadShortlistZip() {
-  const sl = getShortlist();
-  if (sl.size === 0) return;
-  const btn = document.getElementById('btnZip');
-  if (btn) { btn.disabled = true; btn.textContent = 'Wird erstellt…'; }
-
+async function downloadZip(candidates, filename) {
   const zip = new JSZip();
-  const shortlisted = ['s1','s2','s3','s4'].flatMap(s =>
-    selects.filter(c => c.scene === s && sl.has(c.folder))
-  );
-
   const sceneLabel = { s1:'S1-Parkplatz', s2:'S2-Kuehlregal', s3:'S3-Stau', s4:'S4-Vorgarten' };
-
-  await Promise.all(shortlisted.map(async (c, i) => {
+  const ordered = ['s1','s2','s3','s4'].flatMap(s => candidates.filter(c => c.scene === s));
+  await Promise.all(ordered.map(async (c, i) => {
     const url = `casting_images/${c.folder}/headshot.jpg`;
     try {
       const res = await fetch(url);
       if (!res.ok) return;
       const blob = await res.blob();
       const safeName = c.name.replace(/[^a-zA-Z0-9äöüÄÖÜß\s-]/g,'').replace(/\s+/g,'_');
-      const filename = `${sceneLabel[c.scene]}/${String(i+1).padStart(2,'0')}_${safeName}.jpg`;
-      zip.file(filename, blob);
+      zip.file(`${sceneLabel[c.scene]}/${String(i+1).padStart(2,'0')}_${safeName}.jpg`, blob);
     } catch(e) {}
   }));
-
-  const content = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 3 } });
+  const content = await zip.generateAsync({ type:'blob', compression:'DEFLATE', compressionOptions:{ level:3 } });
   const url = URL.createObjectURL(content);
   const a = document.createElement('a');
-  a.href = url;
-  a.download = `Kaufland_IceIce_Shortlist_${new Date().toISOString().slice(0,10)}.zip`;
-  document.body.appendChild(a);
-  a.click();
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
 
+async function downloadAllZip() {
+  const btn = document.getElementById('btnDownloadAll');
+  if (btn) { btn.disabled = true; btn.textContent = 'Wird erstellt…'; }
+  await downloadZip(selects, `Kaufland_IceIce_Alle98_${new Date().toISOString().slice(0,10)}.zip`);
+  if (btn) { btn.disabled = false; btn.textContent = '↓ Alle herunterladen'; }
+}
+
+async function downloadShortlistZip() {
+  const sl = getShortlist();
+  if (sl.size === 0) return;
+  const btn = document.getElementById('btnZip');
+  if (btn) { btn.disabled = true; btn.textContent = 'Wird erstellt…'; }
+  const shortlisted = selects.filter(c => sl.has(c.folder));
+  await downloadZip(shortlisted, `Kaufland_IceIce_Shortlist_${new Date().toISOString().slice(0,10)}.zip`);
   if (btn) { btn.disabled = false; btn.textContent = '↓ ZIP herunterladen'; }
 }
 
