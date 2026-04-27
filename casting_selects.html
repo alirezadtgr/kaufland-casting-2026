@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kaufland Ice Ice — Selects</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -801,6 +802,63 @@
   .upload-state { display: none; }
   .upload-state.active { display: block; }
 
+  /* ── SHORTLIST EXPORT BAR ── */
+  .shortlist-export-bar {
+    background: #1A1A1A;
+    border-bottom: 2px solid #F59E0B;
+  }
+  .shortlist-export-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .shortlist-export-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #F59E0B;
+    flex: 1;
+    min-width: 140px;
+  }
+  .btn-export-zip {
+    background: #F59E0B;
+    color: #1A1A1A;
+    border: none;
+    border-radius: 7px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: var(--font);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background .15s;
+    white-space: nowrap;
+  }
+  .btn-export-zip:hover { background: #d97706; }
+  .btn-export-zip:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-export-pdf {
+    background: rgba(255,255,255,.1);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 7px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--font);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background .15s;
+    white-space: nowrap;
+  }
+  .btn-export-pdf:hover { background: rgba(255,255,255,.18); }
+
   /* ── SHORTLIST STAR ── */
   .star-btn {
     position: absolute;
@@ -905,6 +963,14 @@
       <select class="agency-select" id="agencyFilter" onchange="setAgencyFilter(this.value)">
         <option value="all">Alle Agenturen</option>
       </select>
+    </div>
+  </div>
+
+  <div class="shortlist-export-bar" id="shortlistExportBar" style="display:none">
+    <div class="shortlist-export-inner">
+      <span class="shortlist-export-label">&#9733; <span id="slExportCount">0</span> auf Shortlist</span>
+      <button class="btn-export-zip" id="btnZip" onclick="downloadShortlistZip()">&#8595; ZIP herunterladen</button>
+      <button class="btn-export-pdf" onclick="openShortlistPrint()">&#9783; Contact Sheet / PDF</button>
     </div>
   </div>
 
@@ -1071,6 +1137,138 @@ function toggleShortlistFilter(btn) {
   shortlistOnly = !shortlistOnly;
   btn.classList.toggle('active', shortlistOnly);
   renderGrid();
+}
+
+function updateShortlistExportBar() {
+  const count = getShortlist().size;
+  const bar = document.getElementById('shortlistExportBar');
+  if (bar) bar.style.display = count > 0 ? 'block' : 'none';
+  const lbl = document.getElementById('slExportCount');
+  if (lbl) lbl.textContent = count;
+}
+
+async function downloadShortlistZip() {
+  const sl = getShortlist();
+  if (sl.size === 0) return;
+  const btn = document.getElementById('btnZip');
+  if (btn) { btn.disabled = true; btn.textContent = 'Wird erstellt…'; }
+
+  const zip = new JSZip();
+  const shortlisted = ['s1','s2','s3','s4'].flatMap(s =>
+    selects.filter(c => c.scene === s && sl.has(c.folder))
+  );
+
+  const sceneLabel = { s1:'S1-Parkplatz', s2:'S2-Kuehlregal', s3:'S3-Stau', s4:'S4-Vorgarten' };
+
+  await Promise.all(shortlisted.map(async (c, i) => {
+    const url = `casting_images/${c.folder}/headshot.jpg`;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) return;
+      const blob = await res.blob();
+      const safeName = c.name.replace(/[^a-zA-Z0-9äöüÄÖÜß\s-]/g,'').replace(/\s+/g,'_');
+      const filename = `${sceneLabel[c.scene]}/${String(i+1).padStart(2,'0')}_${safeName}.jpg`;
+      zip.file(filename, blob);
+    } catch(e) {}
+  }));
+
+  const content = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 3 } });
+  const url = URL.createObjectURL(content);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Kaufland_IceIce_Shortlist_${new Date().toISOString().slice(0,10)}.zip`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  if (btn) { btn.disabled = false; btn.textContent = '↓ ZIP herunterladen'; }
+}
+
+function openShortlistPrint() {
+  const sl = getShortlist();
+  if (sl.size === 0) return;
+  const shortlisted = ['s1','s2','s3','s4'].flatMap(s =>
+    selects.filter(c => c.scene === s && sl.has(c.folder))
+  );
+  const sceneColors = { s1:'#2563EB', s2:'#16A34A', s3:'#EA580C', s4:'#9333EA' };
+  const sceneNames  = { s1:'Szene 1 – Parkplatz', s2:'Szene 2 – Kühlregal', s3:'Szene 3 – Stau', s4:'Szene 4 – Vorgarten' };
+  const base = window.location.href.replace(/\/[^/]*$/, '/');
+  const date = new Date().toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
+
+  const cards = shortlisted.map(c => `
+    <div class="pc">
+      <div class="pc-img-wrap">
+        <img src="${base}casting_images/${c.folder}/headshot.jpg"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="pc-init">${getInitials(c.name)}</div>
+      </div>
+      <div class="pc-info">
+        <div class="pc-name">${c.name}</div>
+        <div class="pc-agency">${c.agency}</div>
+        <span class="pc-badge" style="background:${sceneColors[c.scene]}">${sceneNames[c.scene]}</span>
+      </div>
+    </div>`).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Kaufland IceIce – Shortlist ${date}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f5f5f5;color:#1A1A1A;padding:20px}
+  .doc-header{background:#1A1A1A;color:#fff;padding:18px 24px;border-radius:10px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .doc-title{font-size:18px;font-weight:700}.doc-title span{color:#CC0000}
+  .doc-meta{font-size:12px;color:#aaa}
+  .doc-count{background:#F59E0B;color:#1A1A1A;font-size:12px;font-weight:700;border-radius:20px;padding:4px 12px}
+  .btn-print{background:#F59E0B;color:#1A1A1A;border:none;border-radius:7px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+  .grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+  .pc{background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.1)}
+  .pc-img-wrap{position:relative;width:100%;padding-top:140%;background:#ddd;overflow:hidden}
+  .pc-img-wrap img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .pc-init{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:#ccc;font-size:22px;font-weight:700;color:#888}
+  .pc-info{padding:8px 9px 10px}
+  .pc-name{font-size:11px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pc-agency{font-size:10px;color:#777;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pc-badge{display:inline-block;font-size:9px;font-weight:700;color:#fff;border-radius:6px;padding:2px 6px}
+  @media print{
+    body{background:#fff;padding:0}
+    .doc-header{border-radius:0;margin-bottom:14px;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+    .btn-print{display:none}
+    .grid{gap:8px}
+    .pc{box-shadow:none;border:1px solid #eee}
+    .pc-badge{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  }
+  @page{size:A4 landscape;margin:12mm}
+</style>
+</head>
+<body>
+<div class="doc-header">
+  <div>
+    <div class="doc-title">Kaufland Ice Ice — <span>Shortlist</span></div>
+    <div class="doc-meta">Drehtag 12.05.2026 &nbsp;·&nbsp; Erstellt am ${date}</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px">
+    <span class="doc-count">&#9733; ${shortlisted.length} Talente</span>
+    <button class="btn-print" onclick="window.print()">Als PDF speichern</button>
+  </div>
+</div>
+<div class="grid">${cards}</div>
+<script>
+  document.querySelectorAll('.pc-img-wrap img').forEach(img => {
+    img.addEventListener('error', () => {
+      img.style.display = 'none';
+      img.nextElementSibling.style.display = 'flex';
+    });
+  });
+<\/script>
+</body>
+</html>`;
+
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
 }
 
 const pendingFiles = new Map(); // folder → File
@@ -1357,6 +1555,7 @@ function updateStats() {
     document.getElementById(s+'count').textContent = selects.filter(c => c.scene === s).length;
   });
   document.getElementById('shortlistCount').textContent = getShortlist().size;
+  updateShortlistExportBar();
 }
 
 // ══════════════════════════════════════
