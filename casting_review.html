@@ -87,6 +87,8 @@ main{padding:24px;max-width:1800px;margin:0 auto}
 .card-scenes{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px}
 .card-scene{font-size:9px;font-weight:700;letter-spacing:.3px;padding:2px 6px;border-radius:8px;display:inline-block;color:#fff}
 .select-badge{position:absolute;top:8px;left:8px;background:#16A34A;color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;letter-spacing:.3px}
+.assigned-pills{position:absolute;top:8px;right:8px;display:flex;flex-direction:column;gap:3px;align-items:flex-end}
+.scene-pill{font-size:9px;font-weight:800;color:#fff;padding:2px 6px;border-radius:4px;letter-spacing:.4px;box-shadow:0 1px 3px rgba(0,0,0,.3);white-space:nowrap}
 #lb-notes{width:100%;padding:10px;border:1px solid #ddd;border-radius:8px;font-size:13px;resize:vertical;min-height:80px;outline:none;font-family:inherit}
 #lb-notes:focus{border-color:#2563EB;box-shadow:0 0 0 2px rgba(37,99,235,.15)}
 .lb-actions{display:flex;gap:8px;margin-top:auto}
@@ -325,11 +327,13 @@ function renderGrid() {
     card.id = 'card-' + idx;
     card.onclick = () => openLightbox(idx);
 
-    // Border = first assigned scene color, or green for selects
+    // Border: thick colored for assigned, thin green for selects-only
     if (sceneList.length > 0) {
       card.style.borderColor = sceneMap[sceneList[0].scene]?.color || '#ddd';
+      card.style.borderWidth = '3px';
     } else if (isSelect) {
       card.style.borderColor = '#16A34A';
+      card.style.borderWidth = '2px';
     }
 
     const imgPath = 'casting_images/' + talent.folder + '/' + (talent.images[0] || 'headshot.jpg');
@@ -342,9 +346,22 @@ function renderGrid() {
       return `<span class="card-scene" style="background:${sc.color}">${shortLabel}${roleLabel}</span>`;
     }).join('');
 
+    const pillsHtml = sceneList.length > 0
+      ? '<div class="assigned-pills">' +
+          sceneList.map(a => {
+            const sc = sceneMap[a.scene];
+            if (!sc) return '';
+            const num = 'S' + a.scene.slice(1);
+            const role = a.role ? ' · ' + a.role.slice(0,4) : '';
+            return `<span class="scene-pill" style="background:${sc.color}">${num}${role}</span>`;
+          }).join('') +
+        '</div>'
+      : '';
+
     card.innerHTML =
       '<img src="' + imgPath + '" alt="' + talent.name + '" loading="lazy">' +
       (isSelect ? '<div class="select-badge">✓ Select</div>' : '') +
+      pillsHtml +
       (s.archived ? '<div class="card-archived-badge">Archiv</div>' : '') +
       '<div class="card-info">' +
         '<div class="card-name">' + talent.name + '</div>' +
