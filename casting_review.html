@@ -260,6 +260,9 @@ const SELECTS_FOLDERS = new Set([
 const STORAGE_KEY = 'casting_kauf_ice_v1';
 // state[idx] = { scenes:[{scene:'s1',role:''},...], notes:'', archived:false }
 let state = {};
+
+// Default scene per folder (from casting_selects.html)
+const SELECTS_SCENES = {"ALEKS":"s2","Aaron_Breyer":"s2","Akke_Visschers":"s1","Alba":"s1","Alessija":"s1","Alex_Daff":"s1","Alexander_Bonnet":"s1","Amelie_Zappe":"s1","Amon_Sander_Seidler":"s1","Anamika_Datta":"s1","Angelo":"s1","Angelo-f":"s1","Anil":"s3","Anna_Jensen":"s4","Annabel_Karmelk":"s1","Anne_Sophie_Pied":"s1","Anton_Wiegand":"s3","Antonia_Langenohl":"s1","Antonia_Schone":"s3","BASTIAN":"s3","Beate_Funke":"s4","Beatrice":"s3","Benjamin_Knaak":"s3","Benjamin_Orlando":"s2","Birgit_Von_Moller":"s4","Carlo_Klingler":"s1","Cecile_Courouble":"s1","Chiara_Noack":"s1","Christopher_Schmidt":"s4","Coco_Weber":"s1","Cyrille_Eenshuistra":"s4","Dennis_Beltchikov":"s2","Elisa":"s2","Fabiana_Bogiatzoglou":"s2","Fabienne_Stera":"s2","Felix_Rahmer":"s2","Gerd_Welkisch":"s4","Harald_Schindel":"s4","Ilona_Malganova":"s3","Ines_Bartholomaus":"s4","Jakob":"s1","Jameela":"s4","Janin_Torzewski":"s3","Jasmin":"s4","Joachim_Jasiek":"s4","Jozsef_Levai":"s1","Jurgen_Fath":"s4","Kallin_Mueller":"s2","Konrad_Abramowski":"s2","LAURENZ_ZIMMERMANN":"s2","LESLIE":"s3","Lasse_Dressler":"s2","Lea_Wolfram":"s2","Leo":"s3","Leonard":"s3","Lina_Wetjen":"s1","Liv":"s1","Liv_Salvisberg":"s2","Lore_Lotte_Peter":"s3","Louis_Braun":"s2","Louis_Wiener":"s3","Luca_St":"s3","Lucas_Avid_Hubner":"s3","Luisa-f":"s3","Luke_Schafer":"s3","MARCUS_ZIERKE":"s1","Marc_Soellinger":"s1","Marie_Mai":"s2","Marq":"s3","Martin":"s2","Marvin_Hug":"s1","Mathilda_Bordfeld":"s3","Maxine_Riewe":"s1","Millicint_Hayes":"s3","Monika_Stenzel":"s4","Nazar_Zhmuro":"s3","Nele_Luisa":"s2","Nina_Julia":"s2","Otis_Hagen":"s4","Patrick":"s1","Paula_Breuer":"s3","Pegah":"s1","Perry_Frenzel":"s2","Pit":"s3","Rabia":"s4","Rachel":"s2","Rosalie":"s2","SAORI":"s1","Selina_Schaper":"s1","Sen_Br_Cker":"s3","Simone_Muller_Pradella":"s1","Stefan_Wachsmuth":"s1","Susanne_Jo":"s4","Valan_Sharp":"s1","viva_serviceagentur_gmbh_(1)":"s1","viva_serviceagentur_gmbh_(10)":"s1","viva_serviceagentur_gmbh_(4)":"s3","viva_serviceagentur_gmbh_(6)":"s4"};
 let current = null;
 let imgIdx  = 0;
 let activeFilter = 'all';
@@ -284,6 +287,19 @@ function migrateState(raw) {
 // ── Init ────────────────────────────────────────────────────────────────────────────
 function init() {
   try { state = migrateState(JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')); } catch(e) { state = {}; }
+
+  // Pre-seed scene assignments for all 98 selects (only if not yet manually set)
+  let dirty = false;
+  talents.forEach((t, idx) => {
+    const defaultScene = SELECTS_SCENES[t.folder];
+    if (!defaultScene) return;
+    if (!state[idx] || !state[idx].scenes || state[idx].scenes.length === 0) {
+      state[idx] = Object.assign({ scenes:[], notes:'', archived:false }, state[idx] || {});
+      state[idx].scenes = [{scene: defaultScene, role: ''}];
+      dirty = true;
+    }
+  });
+  if (dirty) persist();
 
   const sel = document.getElementById('agency-filter');
   agencies.forEach(ag => {
