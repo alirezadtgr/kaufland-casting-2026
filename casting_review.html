@@ -486,7 +486,7 @@ function buildSceneOptions(sceneList) {
     row.appendChild(cb);
     row.appendChild(dot);
     row.appendChild(lbl);
-    row.appendChild(roleSel);
+    if (sc.id === 's4') row.appendChild(roleSel);
     opts.appendChild(row);
   });
 }
