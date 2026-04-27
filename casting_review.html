@@ -344,14 +344,15 @@ function renderGrid() {
       return `<span class="card-scene" style="background:${sc.color}">${shortLabel}${roleLabel}</span>`;
     }).join('');
 
+    const roleLabels = {main:'Hauptrolle',joggerin:'Joggerin',nachbar:'Nachbar:in'};
     const pillsHtml = sceneList.length > 0
       ? '<div class="assigned-pills">' +
           sceneList.map(a => {
             const sc = sceneMap[a.scene];
             if (!sc) return '';
-            const num = 'S' + a.scene.slice(1);
-            const role = a.role ? ' · ' + a.role.slice(0,4) : '';
-            return `<span class="scene-pill" style="background:${sc.color}">${num}${role}</span>`;
+            const shortName = sc.label.split('–')[1]?.trim() || sc.label;
+            const roleLabel = a.role ? ' · ' + (roleLabels[a.role] || a.role) : '';
+            return `<span class="scene-pill" style="background:${sc.color}">${shortName}${roleLabel}</span>`;
           }).join('') +
         '</div>'
       : '';
