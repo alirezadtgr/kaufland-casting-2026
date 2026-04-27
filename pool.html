@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kandidaten-Pool — Kaufland Ice Ice</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --accent: #CC0000;
+    --bg: #EFEFEF;
+    --header-bg: #1A1A1A;
+    --s1: #2563EB; --s2: #16A34A; --s3: #EA580C; --s4: #9333EA;
+    --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  body { font-family: var(--font); background: var(--bg); color: #1A1A1A; min-height: 100vh; }
+
+  /* HEADER */
+  .site-header { background: var(--header-bg); color: #fff; padding: 18px 24px 14px; }
+  .header-inner { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .header-left h1 { font-size: 20px; font-weight: 700; }
+  .header-left h1 span { color: var(--accent); }
+  .header-sub { font-size: 13px; color: #aaa; margin-top: 3px; }
+  .header-back { color: #aaa; text-decoration: none; font-size: 13px; display: inline-flex; align-items: center; gap: 5px; margin-bottom: 6px; transition: color .2s; }
+  .header-back:hover { color: #fff; }
+  .badge-count { background: #F59E0B; color: #1A1A1A; font-size: 12px; font-weight: 700; border-radius: 20px; padding: 4px 13px; }
+
+  /* TOOLBAR */
+  .toolbar { background: #fff; border-bottom: 1px solid #ddd; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+  .toolbar-inner { max-width: 1400px; margin: 0 auto; padding: 10px 24px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .search-input {
+    flex: 1; min-width: 180px;
+    border: 2px solid #ddd; border-radius: 20px; padding: 6px 14px;
+    font-size: 13px; font-family: var(--font); outline: none; background: #fff;
+    transition: border-color .15s;
+  }
+  .search-input:focus { border-color: #999; }
+  .filter-btn {
+    border: 2px solid #ddd; background: #fff; color: #555;
+    border-radius: 20px; padding: 5px 13px; font-size: 12px; font-weight: 600;
+    cursor: pointer; font-family: var(--font); transition: all .15s; white-space: nowrap;
+  }
+  .filter-btn:hover { border-color: #999; color: #222; }
+  .filter-btn.active { background: #1A1A1A; border-color: #1A1A1A; color: #fff; }
+  .filter-btn[data-scene="s1"].active { background: var(--s1); border-color: var(--s1); }
+  .filter-btn[data-scene="s2"].active { background: var(--s2); border-color: var(--s2); }
+  .filter-btn[data-scene="s3"].active { background: var(--s3); border-color: var(--s3); }
+  .filter-btn[data-scene="s4"].active { background: var(--s4); border-color: var(--s4); }
+
+  .filter-sep { width: 1px; height: 24px; background: #ddd; }
+
+  /* ADDED BAR */
+  .added-bar { background: #1A1A1A; border-bottom: 2px solid #F59E0B; display: none; }
+  .added-bar-inner { max-width: 1400px; margin: 0 auto; padding: 0 24px; }
+  .added-bar-toggle {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 0; cursor: pointer; user-select: none;
+  }
+  .added-bar-label { font-size: 13px; font-weight: 700; color: #F59E0B; flex: 1; }
+  .added-bar-chevron { color: #aaa; font-size: 12px; transition: transform .2s; }
+  .added-bar.open .added-bar-chevron { transform: rotate(180deg); }
+  .added-bar-actions { display: flex; gap: 8px; }
+  .btn-export-code {
+    background: #F59E0B; color: #1A1A1A; border: none; border-radius: 7px;
+    padding: 6px 14px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: var(--font);
+    transition: background .15s; white-space: nowrap;
+  }
+  .btn-export-code:hover { background: #d97706; }
+  .added-list-wrap { display: none; padding-bottom: 14px; }
+  .added-bar.open .added-list-wrap { display: block; }
+  .added-list { display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow-y: auto; }
+  .added-item {
+    background: rgba(255,255,255,.08); border-radius: 8px;
+    padding: 10px 12px; display: flex; align-items: center; gap: 10px;
+  }
+  .added-item img { width: 40px; height: 54px; object-fit: cover; border-radius: 5px; flex-shrink: 0; }
+  .added-item-info { flex: 1; min-width: 0; }
+  .added-item-name { font-size: 13px; font-weight: 700; color: #fff; }
+  .added-item-meta { display: flex; gap: 6px; align-items: center; margin-top: 3px; flex-wrap: wrap; }
+  .added-item-role { font-size: 10px; color: #aaa; }
+  .btn-remove { background: rgba(255,255,255,.1); border: none; color: #aaa; font-size: 13px; cursor: pointer; border-radius: 5px; padding: 3px 7px; transition: all .15s; }
+  .btn-remove:hover { background: rgba(204,0,0,.4); color: #fff; }
+
+  /* MAIN */
+  .main { max-width: 1400px; margin: 0 auto; padding: 20px 24px 60px; }
+  .section-label { font-size: 12px; font-weight: 700; color: #999; letter-spacing: .5px; text-transform: uppercase; margin-bottom: 14px; }
+
+  /* POOL GRID */
+  .pool-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+  .pool-card { background: #fff; border-radius: 8px; overflow: hidden; position: relative; box-shadow: 0 1px 4px rgba(0,0,0,.08); transition: transform .15s, box-shadow .15s; }
+  .pool-card:hover { transform: translateY(-3px); box-shadow: 0 6px 18px rgba(0,0,0,.13); }
+  .pool-card.added { outline: 2px solid #F59E0B; }
+  .pool-img-wrap { position: relative; width: 100%; padding-top: 140%; background: #ddd; overflow: hidden; }
+  .pool-img-wrap img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .pool-init { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: #ccc; font-size: 22px; font-weight: 700; color: #888; }
+  .add-overlay {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,.0); color: transparent;
+    border: none; cursor: pointer; font-family: var(--font);
+    font-size: 14px; font-weight: 700;
+    transition: background .15s, color .15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pool-card:hover .add-overlay { background: rgba(0,0,0,.55); color: #fff; }
+  .pool-card.added .add-overlay { display: none; }
+  .added-overlay {
+    position: absolute; inset: 0;
+    background: rgba(245,158,11,.75);
+    color: #fff; font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    gap: 4px;
+  }
+  .pool-name { font-size: 10px; font-weight: 700; color: #333; padding: 6px 7px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* LOADING / EMPTY */
+  .loading-state { text-align: center; padding: 60px 20px; color: #999; font-size: 14px; }
+  .spinner { width: 32px; height: 32px; border: 3px solid #ddd; border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 12px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.65); z-index: 900; align-items: center; justify-content: center; padding: 24px; }
+  .modal-overlay.open { display: flex; }
+  .modal-box { background: #fff; border-radius: 14px; width: 100%; max-width: 420px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.35); animation: fadeIn .18s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: scale(.95); } to { opacity: 1; transform: scale(1); } }
+  .modal-header { background: var(--header-bg); color: #fff; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+  .modal-header h3 { font-size: 15px; font-weight: 700; }
+  .modal-close-btn { background: none; border: none; color: #aaa; font-size: 20px; cursor: pointer; padding: 0; line-height: 1; font-family: var(--font); }
+  .modal-close-btn:hover { color: #fff; }
+  .modal-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .field-group { display: flex; flex-direction: column; gap: 5px; }
+  .field-label { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: .4px; }
+  .field-input, .field-select {
+    border: 1.5px solid #ddd; border-radius: 8px; padding: 9px 12px;
+    font-size: 13px; font-family: var(--font); color: #222; outline: none;
+    background: #fafafa; transition: border-color .15s;
+  }
+  .field-input:focus, .field-select:focus { border-color: #999; background: #fff; }
+  .modal-footer { padding: 0 20px 20px; display: flex; gap: 10px; }
+  .btn-confirm { flex: 1; background: var(--s4); color: #fff; border: none; border-radius: 8px; padding: 11px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: var(--font); transition: opacity .15s; }
+  .btn-confirm:hover { opacity: .85; }
+  .btn-cancel { background: #f3f3f3; color: #555; border: none; border-radius: 8px; padding: 11px 18px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--font); transition: background .15s; }
+  .btn-cancel:hover { background: #e5e5e5; }
+
+  /* EXPORT MODAL */
+  .export-modal-box { background: #fff; border-radius: 14px; width: 100%; max-width: 680px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.35); animation: fadeIn .18s ease; }
+  .export-textarea { width: 100%; height: 240px; border: 1.5px solid #ddd; border-radius: 8px; padding: 12px; font-size: 11px; font-family: monospace; color: #222; resize: vertical; outline: none; line-height: 1.6; }
+  .export-note { font-size: 11px; color: #999; line-height: 1.5; }
+  .btn-copy { background: #1A1A1A; color: #fff; border: none; border-radius: 7px; padding: 9px 18px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: var(--font); transition: background .15s; }
+  .btn-copy:hover { background: #333; }
+  .btn-copy.copied { background: #16A34A; }
+
+  @media (max-width: 600px) {
+    .pool-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+    .toolbar-inner { gap: 6px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="header-left">
+      <a href="casting_selects.html" class="header-back">&#8592; Zurück zu Selects</a>
+      <h1>Kandidaten-<span>Pool</span></h1>
+      <p class="header-sub" id="headerSub">Wird geladen…</p>
+    </div>
+    <span class="badge-count" id="addedBadge" style="display:none">0 hinzugefügt</span>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="toolbar-inner">
+    <input class="search-input" type="search" placeholder="Name suchen…" id="searchInput" oninput="onSearch(this.value)">
+    <div class="filter-sep"></div>
+    <button class="filter-btn active" data-scene="all" onclick="setSceneFilter('all',this)">Alle</button>
+    <button class="filter-btn" data-scene="s1" onclick="setSceneFilter('s1',this)">Parkplatz</button>
+    <button class="filter-btn" data-scene="s2" onclick="setSceneFilter('s2',this)">Kühlregal</button>
+    <button class="filter-btn" data-scene="s3" onclick="setSceneFilter('s3',this)">Stau</button>
+    <button class="filter-btn" data-scene="s4" onclick="setSceneFilter('s4',this)">Vorgarten</button>
+  </div>
+</div>
+
+<div class="added-bar" id="addedBar">
+  <div class="added-bar-inner">
+    <div class="added-bar-toggle" onclick="toggleAddedBar()">
+      <span class="added-bar-label">&#9733; <span id="addedBarCount">0</span> Kandidaten hinzugefügt</span>
+      <div class="added-bar-actions" onclick="event.stopPropagation()">
+        <button class="btn-export-code" onclick="openExportModal()">Code generieren</button>
+      </div>
+      <span class="added-bar-chevron">&#9650;</span>
+    </div>
+    <div class="added-list-wrap">
+      <div class="added-list" id="addedList"></div>
+    </div>
+  </div>
+</div>
+
+<main class="main">
+  <div class="section-label" id="poolLabel"></div>
+  <div class="pool-grid" id="poolGrid">
+    <div class="loading-state" style="grid-column:1/-1">
+      <div class="spinner"></div>
+      Lade Kandidaten-Pool…
+    </div>
+  </div>
+</main>
+
+
+<!-- ADD MODAL -->
+<div class="modal-overlay" id="addModal" onclick="closeModalOnOverlay(event,'addModal')">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="modalTitle">Kandidat hinzufügen</h3>
+      <button class="modal-close-btn" onclick="closeModal()">&#215;</button>
+    </div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label class="field-label">Name</label>
+        <input class="field-input" id="inputName" type="text">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Agentur</label>
+        <input class="field-input" id="inputAgency" type="text" placeholder="z.B. Fangfrisch Berlin">
+      </div>
+      <div style="display:flex;gap:10px">
+        <div class="field-group" style="flex:1">
+          <label class="field-label">Szene</label>
+          <select class="field-select" id="inputScene">
+            <option value="s1">Szene 1 – Parkplatz</option>
+            <option value="s2">Szene 2 – Kühlregal</option>
+            <option value="s3">Szene 3 – Stau</option>
+            <option value="s4" selected>Szene 4 – Vorgarten</option>
+          </select>
+        </div>
+        <div class="field-group" style="flex:1">
+          <label class="field-label">Rolle</label>
+          <select class="field-select" id="inputRole">
+            <option value="main">Hauptrolle</option>
+            <option value="extra" selected>Extra / Hintergrund</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Subtyp</label>
+        <select class="field-select" id="inputSubtype">
+          <option value="">— Kein Subtyp</option>
+          <option value="Joggerin">Joggerin</option>
+          <option value="Kind">Kind</option>
+          <option value="Nachbar:in">Nachbar:in</option>
+          <option value="Extra">Extra</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Abbrechen</button>
+      <button class="btn-confirm" id="btnConfirmAdd" onclick="confirmAdd()">Hinzufügen</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="modal-overlay" id="exportModal" onclick="closeModalOnOverlay(event,'exportModal')">
+  <div class="export-modal-box">
+    <div class="modal-header">
+      <h3>Code für casting_selects.html</h3>
+      <button class="modal-close-btn" onclick="closeExportModal()">&#215;</button>
+    </div>
+    <div class="modal-body">
+      <p class="export-note">Diesen Code in das <code>selects</code>-Array in <code>casting_selects.html</code> einfügen (vor der abschließenden <code>];</code>):</p>
+      <textarea class="export-textarea" id="exportCode" readonly></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeExportModal()">Schließen</button>
+      <button class="btn-copy" id="btnCopyCode" onclick="copyExportCode()">Kopieren</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+const CDN_BASE = 'https://creativeproductions1.github.io/kaufland-casting-2026/casting_images';
+const REPO_URL = 'https://api.github.com/repos/creativeproductions1/kaufland-casting-2026/contents/casting_images';
+const STORAGE_KEY = 'additionalSelects_kaufland2026';
+
+const SYSTEM_FOLDERS = new Set([
+  'buero','louisa_models','model_agency_bookers_marius',
+  'seeds_management','seeds_management_(1)','viva_serviceagentur_gmbh'
+]);
+
+const SELECTED_FOLDERS = new Set([
+  "ALEKS","Aaron_Breyer","Akke_Visschers","Alba","Alessija","Alex_Daff","Alexander_Bonnet",
+  "Amelie_Zappe","Amon_Sander_Seidler","Anamika_Datta","Angelo","Angelo-f","Anil","Anna_Jensen",
+  "Annabel_Karmelk","Anne_Sophie_Pied","Anton_Wiegand","Antonia_Langenohl","Antonia_Schone",
+  "BASTIAN","Beate_Funke","Beatrice","Benjamin_Knaak","Benjamin_Orlando","Birgit_Von_Moller",
+  "Carlo_Klingler","Cecile_Courouble","Chiara_Noack","Christopher_Schmidt","Coco_Weber",
+  "Cyrille_Eenshuistra","Dennis_Beltchikov","Elisa","Fabiana_Bogiatzoglou","Fabienne_Stera",
+  "Felix_Rahmer","Gerd_Welkisch","Harald_Schindel","Ilona_Malganova","Ines_Bartholomaus",
+  "Jakob","Jameela","Janin_Torzewski","Jasmin","Joachim_Jasiek","Jozsef_Levai","Jurgen_Fath",
+  "Kallin_Mueller","Konrad_Abramowski","LAURENZ_ZIMMERMANN","LESLIE","Lasse_Dressler",
+  "Lea_Wolfram","Leo","Leonard","Lina_Wetjen","Liv","Liv_Salvisberg","Lore_Lotte_Peter",
+  "Louis_Braun","Louis_Wiener","Luca_St","Lucas_Avid_Hubner","Luisa-f","Luke_Schafer",
+  "MARCUS_ZIERKE","Marc_Soellinger","Marie_Mai","Marq","Martin","Marvin_Hug","Mathilda_Bordfeld",
+  "Maxine_Riewe","Millicint_Hayes","Monika_Stenzel","Nazar_Zhmuro","Nele_Luisa","Nina_Julia",
+  "Otis_Hagen","Patrick","Paula_Breuer","Pegah","Perry_Frenzel","Pit","Rabia","Rachel",
+  "Rosalie","SAORI","Selina_Schaper","Sen_Br_Cker","Simone_Muller_Pradella","Stefan_Wachsmuth",
+  "Susanne_Jo","Valan_Sharp","viva_serviceagentur_gmbh_(1)","viva_serviceagentur_gmbh_(10)",
+  "viva_serviceagentur_gmbh_(4)","viva_serviceagentur_gmbh_(6)"
+]);
+
+const sceneInfo = {
+  s1:{ label:'Szene 1 – Parkplatz', color:'#2563EB' },
+  s2:{ label:'Szene 2 – Kühlregal', color:'#16A34A' },
+  s3:{ label:'Szene 3 – Stau',      color:'#EA580C' },
+  s4:{ label:'Szene 4 – Vorgarten', color:'#9333EA' },
+};
+
+let allFolders = [];
+let addedSelects = [];
+let currentFolder = null;
+let searchQuery = '';
+let sceneFilter = 'all';
+
+// ── INIT ──
+async function init() {
+  addedSelects = getAddedSelects();
+  renderAddedBar();
+
+  try {
+    const res = await fetch(REPO_URL, { headers:{ Accept:'application/vnd.github.v3+json' } });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const items = await res.json();
+    if (!Array.isArray(items)) throw new Error('unexpected response');
+    allFolders = items
+      .filter(i => i.type === 'dir' && !SELECTED_FOLDERS.has(i.name) && !SYSTEM_FOLDERS.has(i.name))
+      .map(i => i.name)
+      .sort((a,b) => a.localeCompare(b,'de'));
+    document.getElementById('headerSub').textContent = `${allFolders.length} verfügbare Kandidaten (nicht selektiert)`;
+    renderGrid();
+  } catch(e) {
+    document.getElementById('poolGrid').innerHTML = `<div class="loading-state" style="grid-column:1/-1">
+      <p style="color:#CC0000">Fehler beim Laden der Daten.<br><small>${e.message}</small></p>
+      <button onclick="init()" style="margin-top:12px;padding:8px 16px;border-radius:7px;border:1px solid #ccc;cursor:pointer;font-family:inherit">Erneut versuchen</button>
+    </div>`;
+  }
+}
+
+// ── LOCAL STORAGE ──
+function getAddedSelects() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch(e) { return []; }
+}
+function saveAddedSelects() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(addedSelects));
+}
+
+// ── SEARCH & FILTER ──
+function onSearch(val) { searchQuery = val; renderGrid(); }
+function setSceneFilter(scene, btn) {
+  sceneFilter = scene;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderGrid();
+}
+
+// ── HELPERS ──
+function folderToName(folder) {
+  return folder.replace(/_/g,' ').replace(/-/g,' ').replace(/\b\w/g, c => c.toUpperCase()).trim();
+}
+function getInitials(name) {
+  return name.split(/\s+/).slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+}
+function addedSceneFor(folder) {
+  const found = addedSelects.find(s => s.folder === folder);
+  return found ? found.scene : null;
+}
+
+// ── RENDER GRID ──
+function renderGrid() {
+  const grid = document.getElementById('poolGrid');
+  const q = searchQuery.toLowerCase();
+  const addedFolders = new Set(addedSelects.map(s => s.folder));
+  const addedByScene = {};
+  addedSelects.forEach(s => { if (!addedByScene[s.scene]) addedByScene[s.scene] = []; addedByScene[s.scene].push(s.folder); });
+
+  let filtered = allFolders.filter(f => folderToName(f).toLowerCase().includes(q));
+  if (sceneFilter !== 'all') {
+    const sceneAdded = new Set(addedByScene[sceneFilter] || []);
+    filtered = filtered.filter(f => sceneAdded.has(f) || !addedFolders.has(f));
+  }
+
+  document.getElementById('poolLabel').textContent = `${filtered.length} Kandidaten`;
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="loading-state" style="grid-column:1/-1">Keine Treffer.</div>';
+    return;
+  }
+
+  grid.innerHTML = '';
+  filtered.forEach(folder => {
+    const name = folderToName(folder);
+    const isAdded = addedFolders.has(folder);
+    const addedEntry = addedSelects.find(s => s.folder === folder);
+    const card = document.createElement('div');
+    card.className = 'pool-card' + (isAdded ? ' added' : '');
+    const overlay = isAdded
+      ? `<div class="added-overlay">&#10003; ${addedEntry?.subtype || sceneInfo[addedEntry?.scene]?.label.split('–')[0].trim() || ''}</div>`
+      : `<button class="add-overlay" onclick="openAddModal('${CSS.escape(folder)}')">+ Hinzufügen</button>`;
+    card.innerHTML = `
+      <div class="pool-img-wrap">
+        <img src="${CDN_BASE}/${folder}/headshot.jpg" loading="lazy" alt="${name}"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="pool-init">${getInitials(name)}</div>
+        ${overlay}
+      </div>
+      <div class="pool-name">${name}</div>`;
+    if (!isAdded) card.querySelector('.add-overlay').onclick = () => openAddModal(folder);
+    grid.appendChild(card);
+  });
+}
+
+// ── ADD MODAL ──
+function openAddModal(folder) {
+  currentFolder = folder;
+  const name = folderToName(folder);
+  document.getElementById('modalTitle').textContent = name;
+  document.getElementById('inputName').value = name;
+  document.getElementById('inputAgency').value = '';
+  document.getElementById('inputScene').value = 's4';
+  document.getElementById('inputRole').value = 'extra';
+  document.getElementById('inputSubtype').value = '';
+  document.getElementById('addModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('inputAgency').focus();
+}
+
+function closeModal() {
+  document.getElementById('addModal').classList.remove('open');
+  document.body.style.overflow = '';
+  currentFolder = null;
+}
+
+function confirmAdd() {
+  if (!currentFolder) return;
+  const name    = document.getElementById('inputName').value.trim() || folderToName(currentFolder);
+  const agency  = document.getElementById('inputAgency').value.trim() || '—';
+  const scene   = document.getElementById('inputScene').value;
+  const role    = document.getElementById('inputRole').value;
+  const subtype = document.getElementById('inputSubtype').value;
+
+  addedSelects = addedSelects.filter(s => s.folder !== currentFolder);
+  const entry = { name, folder: currentFolder, agency, scene, role, images:['headshot.jpg'] };
+  if (subtype) entry.subtype = subtype;
+  addedSelects.push(entry);
+
+  saveAddedSelects();
+  renderAddedBar();
+  renderGrid();
+  closeModal();
+}
+
+function removeAdded(folder) {
+  addedSelects = addedSelects.filter(s => s.folder !== folder);
+  saveAddedSelects();
+  renderAddedBar();
+  renderGrid();
+}
+
+// ── ADDED BAR ──
+function renderAddedBar() {
+  const bar = document.getElementById('addedBar');
+  const count = addedSelects.length;
+  bar.style.display = count > 0 ? 'block' : 'none';
+  document.getElementById('addedBarCount').textContent = count;
+  const badge = document.getElementById('addedBadge');
+  badge.style.display = count > 0 ? 'inline-block' : 'none';
+  badge.textContent = `${count} hinzugefügt`;
+
+  const list = document.getElementById('addedList');
+  list.innerHTML = '';
+  addedSelects.forEach(c => {
+    const si = sceneInfo[c.scene] || { label: c.scene, color:'#999' };
+    const roleLabel = c.subtype || (c.role === 'extra' ? 'Extra' : 'Hauptrolle');
+    const item = document.createElement('div');
+    item.className = 'added-item';
+    item.innerHTML = `
+      <img src="${CDN_BASE}/${c.folder}/headshot.jpg" onerror="this.style.opacity=.3" alt="">
+      <div class="added-item-info">
+        <div class="added-item-name">${c.name}</div>
+        <div class="added-item-meta">
+          <span style="background:${si.color};color:#fff;border-radius:6px;padding:1px 7px;font-size:10px;font-weight:700">${si.label}</span>
+          <span class="added-item-role">${roleLabel}</span>
+          ${c.agency !== '—' ? `<span class="added-item-role">${c.agency}</span>` : ''}
+        </div>
+      </div>
+      <button class="btn-remove" onclick="removeAdded('${c.folder}')">&#215;</button>`;
+    list.appendChild(item);
+  });
+}
+
+function toggleAddedBar() {
+  document.getElementById('addedBar').classList.toggle('open');
+}
+
+// ── EXPORT MODAL ──
+function openExportModal() {
+  if (addedSelects.length === 0) return;
+  const lines = addedSelects.map(c => {
+    const sub = c.subtype ? `,subtype:"${c.subtype}"` : '';
+    return `  {name:"${c.name}",folder:"${c.folder}",agency:"${c.agency}",scene:"${c.scene}",role:"${c.role}"${sub},images:["headshot.jpg"]},`;
+  });
+  document.getElementById('exportCode').value = lines.join('\n');
+  document.getElementById('exportModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeExportModal() {
+  document.getElementById('exportModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function copyExportCode() {
+  const ta = document.getElementById('exportCode');
+  navigator.clipboard.writeText(ta.value).then(() => {
+    const btn = document.getElementById('btnCopyCode');
+    btn.textContent = 'Kopiert!'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Kopieren'; btn.classList.remove('copied'); }, 2000);
+  }).catch(() => { ta.select(); document.execCommand('copy'); });
+}
+
+function closeModalOnOverlay(e, id) {
+  if (e.target === document.getElementById(id)) {
+    if (id === 'addModal') closeModal();
+    else closeExportModal();
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal(); closeExportModal(); }
+  if (e.key === 'Enter' && document.getElementById('addModal').classList.contains('open')) confirmAdd();
+});
+
+init();
+</script>
+</body>
+</html>

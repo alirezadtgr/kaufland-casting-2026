@@ -196,6 +196,25 @@
     border-radius: 12px;
     padding: 2px 9px;
   }
+  .scene-sub-heading {
+    font-size: 12px;
+    font-weight: 700;
+    color: #777;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    margin: 20px 0 10px;
+    padding-left: 2px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .scene-sub-heading:first-of-type { margin-top: 0; }
+  .scene-sub-heading::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e5e5e5;
+  }
 
   /* ── TALENT GRID ── */
   .talent-grid {
@@ -936,7 +955,7 @@
       </div>
       <div class="header-right">
         <div class="stats-pill" id="statsPill">
-          <span>Gesamt: <strong>98</strong></span>
+          <span>Gesamt: <strong id="totalCount">98</strong></span>
           <span class="sep">|</span>
           <span><span class="stat-dot" style="background:var(--s1)"></span><strong id="s1count">0</strong></span>
           <span><span class="stat-dot" style="background:var(--s2)"></span><strong id="s2count">0</strong></span>
@@ -981,6 +1000,13 @@
 
   <div class="main" style="padding-top:0">
     <div class="admin-panel" id="adminPanel">
+      <div style="margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <h3 style="margin:0">Kandidaten-Pool</h3>
+        <a href="pool.html" target="_blank"
+           style="background:#9333EA;color:#fff;text-decoration:none;border-radius:7px;padding:7px 16px;font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:6px">
+          Pool durchsuchen &#8599;
+        </a>
+      </div>
       <h3>Agentur-Links (nur für Producer)</h3>
       <div class="admin-link-list" id="adminLinkList"></div>
       <div style="margin-top:22px;padding-top:16px;border-top:1px solid #eee">
@@ -1398,7 +1424,7 @@ async function loadEcastingStatus() {
 // ══════════════════════════════════════
 // DATA
 // ══════════════════════════════════════
-const selects = [
+let selects = [
   {name:"ALEKS",folder:"ALEKS",agency:"M4 Models",scene:"s2",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
   {name:"Aaron Breyer",folder:"Aaron_Breyer",agency:"Fangfrisch Berlin",scene:"s2",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
   {name:"Akke Visschers",folder:"Akke_Visschers",agency:"Unknown Agency",scene:"s1",images:["headshot.jpg", "headshot_2.jpg", "headshot_3.jpg", "headshot_4.jpg", "headshot_5.jpg", "headshot_6.jpg", "headshot_7.jpg"]},
@@ -1529,12 +1555,23 @@ function getParams() {
   return new URLSearchParams(window.location.search);
 }
 
+function loadAdditionalSelects() {
+  try {
+    const additional = JSON.parse(localStorage.getItem('additionalSelects_kaufland2026') || '[]');
+    if (additional.length > 0) {
+      const existingFolders = new Set(selects.map(c => c.folder));
+      additional.filter(c => !existingFolders.has(c.folder)).forEach(c => selects.push(c));
+    }
+  } catch(e) {}
+}
+
 function init() {
   const params = getParams();
   const view   = params.get('view');
   const agency = params.get('agency');
   const admin  = params.get('admin');
 
+  loadAdditionalSelects();
   updateStats();
   populateAgencyDropdown();
   buildAdminPanel();
@@ -1554,6 +1591,7 @@ function init() {
 // STATS
 // ══════════════════════════════════════
 function updateStats() {
+  document.getElementById('totalCount').textContent = selects.length;
   ['s1','s2','s3','s4'].forEach(s => {
     document.getElementById(s+'count').textContent = selects.filter(c => c.scene === s).length;
   });
@@ -1653,10 +1691,14 @@ function renderGrid() {
   const isSingleScene = currentScene !== 'all';
 
   if (isSingleScene) {
-    const grid = document.createElement('div');
-    grid.className = 'talent-grid';
-    data.forEach(c => grid.appendChild(makeTalentCard(c)));
-    main.appendChild(grid);
+    if (currentScene === 's4') {
+      main.appendChild(buildS4Section(data));
+    } else {
+      const grid = document.createElement('div');
+      grid.className = 'talent-grid';
+      data.forEach(c => grid.appendChild(makeTalentCard(c)));
+      main.appendChild(grid);
+    }
   } else {
     ['s1','s2','s3','s4'].forEach(s => {
       const group = data.filter(c => c.scene === s);
@@ -1672,13 +1714,52 @@ function renderGrid() {
       heading.innerHTML = `<h2>${sceneInfo[s].label}</h2>`;
       heading.appendChild(badge);
       section.appendChild(heading);
-      const grid = document.createElement('div');
-      grid.className = 'talent-grid';
-      group.forEach(c => grid.appendChild(makeTalentCard(c)));
-      section.appendChild(grid);
+      if (s === 's4') {
+        section.appendChild(buildS4Section(group));
+      } else {
+        const grid = document.createElement('div');
+        grid.className = 'talent-grid';
+        group.forEach(c => grid.appendChild(makeTalentCard(c)));
+        section.appendChild(grid);
+      }
       main.appendChild(section);
     });
   }
+}
+
+function buildS4Section(group) {
+  const frag = document.createDocumentFragment();
+  const mains  = group.filter(c => !c.role || c.role === 'main');
+  const extras  = group.filter(c => c.role && c.role !== 'main');
+  // collect subtypes in order
+  const subtypes = [...new Set(extras.map(c => c.subtype || 'Extra'))];
+
+  if (mains.length > 0) {
+    if (extras.length > 0) {
+      const sh = document.createElement('div');
+      sh.className = 'scene-sub-heading';
+      sh.textContent = 'Hauptrollen';
+      frag.appendChild(sh);
+    }
+    const grid = document.createElement('div');
+    grid.className = 'talent-grid';
+    mains.forEach(c => grid.appendChild(makeTalentCard(c)));
+    frag.appendChild(grid);
+  }
+
+  subtypes.forEach(sub => {
+    const subGroup = extras.filter(c => (c.subtype || 'Extra') === sub);
+    const sh = document.createElement('div');
+    sh.className = 'scene-sub-heading';
+    sh.textContent = sub + 's';
+    frag.appendChild(sh);
+    const grid = document.createElement('div');
+    grid.className = 'talent-grid';
+    subGroup.forEach(c => grid.appendChild(makeTalentCard(c)));
+    frag.appendChild(grid);
+  });
+
+  return frag;
 }
 
 // ══════════════════════════════════════
