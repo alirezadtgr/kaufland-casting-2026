@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Styling Sheet – Kaufland Ice Cream 2026</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Helvetica Neue',Arial,sans-serif;font-size:13px;color:#111;background:#f5f5f3}
+
+/* ── Header ── */
+.page-header{background:#111;color:#fff;padding:20px 32px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.page-header h1{font-size:18px;font-weight:700;letter-spacing:.3px}
+.page-header p{font-size:12px;color:#999;margin-top:2px}
+.header-actions{display:flex;gap:10px;flex-shrink:0}
+.btn{padding:8px 16px;border-radius:6px;border:none;font-size:12px;font-weight:600;cursor:pointer;transition:opacity .15s}
+.btn:hover{opacity:.85}
+.btn-print{background:#fff;color:#111}
+.btn-csv{background:#2563EB;color:#fff}
+.btn-reset{background:rgba(255,255,255,.1);color:#fff;font-size:11px}
+.save-indicator{font-size:11px;color:#6b7280;align-self:center;white-space:nowrap}
+
+/* ── Scene sections ── */
+.scene-section{margin:24px 24px 0}
+.scene-header{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:8px 8px 0 0;color:#fff;font-weight:700;font-size:14px}
+.scene-header .scene-count{font-weight:400;font-size:12px;opacity:.8;margin-left:auto}
+
+/* ── Table ── */
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:0 0 8px 8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+thead th{padding:9px 12px;font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:#6b7280;background:#f9f9f7;border-bottom:1.5px solid #e5e5e3;text-align:left}
+tbody tr{border-bottom:1px solid #f0f0ee}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:#fafaf8}
+td{padding:8px 12px;vertical-align:middle}
+
+/* ── Columns ── */
+.col-photo{width:52px}
+.col-name{width:160px;font-weight:600}
+.col-agency{width:130px;color:#6b7280;font-size:11px}
+.col-groesse{width:110px}
+.col-hose{width:90px}
+.col-schuh{width:80px}
+.col-anmerkung{min-width:200px}
+
+/* ── Photo ── */
+.talent-photo{width:40px;height:48px;object-fit:cover;border-radius:4px;display:block}
+.talent-photo-placeholder{width:40px;height:48px;border-radius:4px;background:#e5e5e3;display:flex;align-items:center;justify-content:center;font-size:10px;color:#999}
+
+/* ── Inputs ── */
+select,input[type="text"],input[type="number"]{width:100%;border:1.5px solid #e0e0dd;border-radius:5px;padding:5px 8px;font-size:12px;font-family:inherit;background:#fff;color:#111;outline:none;transition:border-color .15s}
+select:focus,input:focus{border-color:#2563EB;box-shadow:0 0 0 2px rgba(37,99,235,.1)}
+select.filled,input.filled{border-color:#16A34A;background:#f0fdf4}
+
+.nr{font-size:10px;color:#bbb;text-align:center;width:28px}
+
+/* ── Scene colors ── */
+.s1-bg{background:#2563EB}
+.s2-bg{background:#16A34A}
+.s3-bg{background:#EA580C}
+.s4-bg{background:#9333EA}
+
+/* ── Print ── */
+@media print {
+  body{background:#fff;font-size:11px}
+  .page-header{background:#111 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:14px 20px}
+  .header-actions,.save-indicator{display:none}
+  .scene-section{margin:16px 0 0;break-inside:avoid}
+  .scene-header{-webkit-print-color-adjust:exact;print-color-adjust:exact;border-radius:0}
+  table{box-shadow:none;border:1px solid #ddd}
+  thead th{background:#f5f5f5 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  input,select{border:none;border-bottom:1px solid #ccc;border-radius:0;padding:2px 4px;font-size:11px}
+  .col-anmerkung{min-width:240px}
+  tbody tr{break-inside:avoid}
+  .btn-reset{display:none}
+}
+
+/* ── Summary bar ── */
+.summary-bar{background:#fff;border-radius:8px;padding:12px 16px;margin:0 24px 24px;display:flex;gap:24px;box-shadow:0 1px 4px rgba(0,0,0,.06);flex-wrap:wrap}
+.summary-item{display:flex;align-items:center;gap:8px;font-size:12px;color:#6b7280}
+.summary-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.summary-item strong{color:#111}
+
+.toast{position:fixed;bottom:20px;right:20px;background:#111;color:#fff;padding:8px 16px;border-radius:6px;font-size:12px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:9999}
+.toast.show{opacity:1}
+
+.page-footer{text-align:center;padding:24px;color:#bbb;font-size:11px}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div>
+    <h1>Styling Sheet – Kaufland Ice Cream 2026</h1>
+    <p>Fitting: Mo 11.05.2026 &nbsp;·&nbsp; Drehtag: Di 12.05.2026 &nbsp;·&nbsp; 98 Talente</p>
+  </div>
+  <div class="header-actions">
+    <span class="save-indicator" id="save-indicator">Automatisch gespeichert</span>
+    <button class="btn btn-csv" onclick="exportCSV()">CSV Export</button>
+    <button class="btn btn-print" onclick="window.print()">Drucken / PDF</button>
+    <button class="btn btn-reset" onclick="resetAll()">Zurücksetzen</button>
+  </div>
+</div>
+
+<div style="height:16px"></div>
+
+<div class="summary-bar" id="summary-bar">
+  <div class="summary-item"><span class="summary-dot" style="background:#2563EB"></span> <span><strong id="cnt-s1">34</strong> Szene 1 – Parkplatz</span></div>
+  <div class="summary-item"><span class="summary-dot" style="background:#16A34A"></span> <span><strong id="cnt-s2">22</strong> Szene 2 – Kühlregal</span></div>
+  <div class="summary-item"><span class="summary-dot" style="background:#EA580C"></span> <span><strong id="cnt-s3">25</strong> Szene 3 – Stau</span></div>
+  <div class="summary-item"><span class="summary-dot" style="background:#9333EA"></span> <span><strong id="cnt-s4">17</strong> Szene 4 – Vorgarten</span></div>
+  <div class="summary-item" style="margin-left:auto"><span>Ausgefüllt: <strong id="cnt-filled">0</strong> / 98</span></div>
+</div>
+
+<div id="scenes-container"></div>
+
+<div class="page-footer">Kaufland Ice Cream 2026 · 263619 · EDi Creative Productions</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'styling_kaufland2026';
+const CDN = 'https://casting-status.b-cdn.net/kaufland-2026';
+
+const scenes = [
+  {id:'s1', label:'Szene 1 – Parkplatz',  color:'#2563EB', cls:'s1-bg'},
+  {id:'s2', label:'Szene 2 – Kühlregal',  color:'#16A34A', cls:'s2-bg'},
+  {id:'s3', label:'Szene 3 – Stau',        color:'#EA580C', cls:'s3-bg'},
+  {id:'s4', label:'Szene 4 – Vorgarten',   color:'#9333EA', cls:'s4-bg'},
+];
+
+const talents = [
+  // Szene 1 – Parkplatz
+  {name:'Akke Visschers',           folder:'Akke_Visschers',            agency:'Unknown Agency',     scene:'s1'},
+  {name:'Alba',                     folder:'Alba',                      agency:'Splendide Models',   scene:'s1'},
+  {name:'Alessija',                 folder:'Alessija',                  agency:'Splendide Models',   scene:'s1'},
+  {name:'Alex Daff',                folder:'Alex_Daff',                 agency:'Fangfrisch Berlin',  scene:'s1'},
+  {name:'Alexander Bonnet',         folder:'Alexander_Bonnet',          agency:'Fangfrisch Berlin',  scene:'s1'},
+  {name:'Amelie Zappe',             folder:'Amelie_Zappe',              agency:'Fangfrisch Berlin',  scene:'s1'},
+  {name:'Amon Sander Seidler',      folder:'Amon_Sander_Seidler',       agency:'Fangfrisch Berlin',  scene:'s1'},
+  {name:'Anamika Datta',            folder:'Anamika_Datta',             agency:'Fangfrisch Berlin',  scene:'s1'},
+  {name:'Angelo',                   folder:'Angelo',                    agency:'Fangfrisch Berlin',  scene:'s1'},
+  {name:'Angelo-f',                 folder:'Angelo-f',                  agency:'Fangfrisch Berlin',  scene:'s1'},
+  {name:'Annabel Karmelk',          folder:'Annabel_Karmelk',           agency:'Fangfrisch Berlin',  scene:'s1'},
+  {name:'Anne Sophie Pied',         folder:'Anne_Sophie_Pied',          agency:'Splendide Models',   scene:'s1'},
+  {name:'Antonia Langenohl',        folder:'Antonia_Langenohl',         agency:'Fangfrisch Berlin',  scene:'s1'},
+  {name:'Carlo Klingler',           folder:'Carlo_Klingler',            agency:'Fangfrisch Berlin',  scene:'s1'},
+  {name:'Cecile Courouble',         folder:'Cecile_Courouble',          agency:'Fangfrisch Berlin',  scene:'s1'},
+  {name:'Chiara Noack',             folder:'Chiara_Noack',              agency:'Fangfrisch Berlin',  scene:'s1'},
+  {name:'Coco Weber',               folder:'Coco_Weber',                agency:'Fangfrisch Berlin',  scene:'s1'},
+  {name:'Jakob',                    folder:'Jakob',                     agency:'Splendide Models',   scene:'s1'},
+  {name:'Jozsef Levai',             folder:'Jozsef_Levai',              agency:'Fangfrisch Berlin',  scene:'s1'},
+  {name:'Lina Wetjen',              folder:'Lina_Wetjen',               agency:'Fangfrisch Berlin',  scene:'s1'},
+  {name:'Liv',                      folder:'Liv',                       agency:'Splendide Models',   scene:'s1'},
+  {name:'MARCUS ZIERKE',            folder:'MARCUS_ZIERKE',             agency:'Splendide Models',   scene:'s1'},
+  {name:'Marc Soellinger',          folder:'Marc_Soellinger',           agency:'Unknown Agency',     scene:'s1'},
+  {name:'Marvin Hug',               folder:'Marvin_Hug',                agency:'Fangfrisch Berlin',  scene:'s1'},
+  {name:'Maxine Riewe',             folder:'Maxine_Riewe',              agency:'Splendide Models',   scene:'s1'},
+  {name:'Patrick',                  folder:'Patrick',                   agency:'Smiling Models',     scene:'s1'},
+  {name:'Pegah',                    folder:'Pegah',                     agency:'Splendide Models',   scene:'s1'},
+  {name:'SAORI',                    folder:'SAORI',                     agency:'M4 Models',          scene:'s1'},
+  {name:'Selina Schaper',           folder:'Selina_Schaper',            agency:'Fangfrisch Berlin',  scene:'s1'},
+  {name:'Simone Muller Pradella',   folder:'Simone_Muller_Pradella',    agency:'Fangfrisch Berlin',  scene:'s1'},
+  {name:'Stefan Wachsmuth',         folder:'Stefan_Wachsmuth',          agency:'Fangfrisch Berlin',  scene:'s1'},
+  {name:'Valan Sharp',              folder:'Valan_Sharp',               agency:'Fangfrisch Berlin',  scene:'s1'},
+  {name:'Viva (1)',                  folder:'viva_serviceagentur_gmbh_(1)',  agency:'Viva Serviceagentur', scene:'s1'},
+  {name:'Viva (10)',                 folder:'viva_serviceagentur_gmbh_(10)', agency:'Viva Serviceagentur', scene:'s1'},
+  // Szene 2 – Kühlregal
+  {name:'ALEKS',                    folder:'ALEKS',                     agency:'M4 Models',          scene:'s2'},
+  {name:'Aaron Breyer',             folder:'Aaron_Breyer',              agency:'Fangfrisch Berlin',  scene:'s2'},
+  {name:'Benjamin Orlando',         folder:'Benjamin_Orlando',          agency:'Unknown Agency',     scene:'s2'},
+  {name:'Dennis Beltchikov',        folder:'Dennis_Beltchikov',         agency:'Fangfrisch Berlin',  scene:'s2'},
+  {name:'Elisa',                    folder:'Elisa',                     agency:'Splendide Models',   scene:'s2'},
+  {name:'Fabiana Bogiatzoglou',     folder:'Fabiana_Bogiatzoglou',      agency:'Fangfrisch Berlin',  scene:'s2'},
+  {name:'Fabienne Stera',           folder:'Fabienne_Stera',            agency:'Fangfrisch Berlin',  scene:'s2'},
+  {name:'Felix Rahmer',             folder:'Felix_Rahmer',              agency:'Fangfrisch Berlin',  scene:'s2'},
+  {name:'Kallin Mueller',           folder:'Kallin_Mueller',            agency:'Unknown Agency',     scene:'s2'},
+  {name:'Konrad Abramowski',        folder:'Konrad_Abramowski',         agency:'Fangfrisch Berlin',  scene:'s2'},
+  {name:'LAURENZ ZIMMERMANN',       folder:'LAURENZ_ZIMMERMANN',        agency:'Fangfrisch Berlin',  scene:'s2'},
+  {name:'Lasse Dressler',           folder:'Lasse_Dressler',            agency:'Fangfrisch Berlin',  scene:'s2'},
+  {name:'Lea Wolfram',              folder:'Lea_Wolfram',               agency:'Unknown Agency',     scene:'s2'},
+  {name:'Liv Salvisberg',           folder:'Liv_Salvisberg',            agency:'Unknown Agency',     scene:'s2'},
+  {name:'Louis Braun',              folder:'Louis_Braun',               agency:'Fangfrisch Berlin',  scene:'s2'},
+  {name:'Marie Mai',                folder:'Marie_Mai',                 agency:'Splendide Models',   scene:'s2'},
+  {name:'Martin',                   folder:'Martin',                    agency:'Smiling Models',     scene:'s2'},
+  {name:'Nele Luisa',               folder:'Nele_Luisa',                agency:'Unknown Agency',     scene:'s2'},
+  {name:'Nina Julia',               folder:'Nina_Julia',                agency:'Unknown Agency',     scene:'s2'},
+  {name:'Perry Frenzel',            folder:'Perry_Frenzel',             agency:'Unknown Agency',     scene:'s2'},
+  {name:'Rachel',                   folder:'Rachel',                    agency:'Splendide Models',   scene:'s2'},
+  {name:'Rosalie',                  folder:'Rosalie',                   agency:'Splendide Models',   scene:'s2'},
+  // Szene 3 – Stau
+  {name:'Anil',                     folder:'Anil',                      agency:'Splendide Models',   scene:'s3'},
+  {name:'Anton Wiegand',            folder:'Anton_Wiegand',             agency:'Fangfrisch Berlin',  scene:'s3'},
+  {name:'Antonia Schone',           folder:'Antonia_Schone',            agency:'Fangfrisch Berlin',  scene:'s3'},
+  {name:'BASTIAN',                  folder:'BASTIAN',                   agency:'M4 Models',          scene:'s3'},
+  {name:'Beatrice',                 folder:'Beatrice',                  agency:'Smiling Models',     scene:'s3'},
+  {name:'Benjamin Knaak',           folder:'Benjamin_Knaak',            agency:'Fangfrisch Berlin',  scene:'s3'},
+  {name:'Ilona Malganova',          folder:'Ilona_Malganova',           agency:'Fangfrisch Berlin',  scene:'s3'},
+  {name:'Janin Torzewski',          folder:'Janin_Torzewski',           agency:'Splendide Models',   scene:'s3'},
+  {name:'LESLIE',                   folder:'LESLIE',                    agency:'M4 Models',          scene:'s3'},
+  {name:'Leo',                      folder:'Leo',                       agency:'Splendide Models',   scene:'s3'},
+  {name:'Leonard',                  folder:'Leonard',                   agency:'Splendide Models',   scene:'s3'},
+  {name:'Lore Lotte Peter',         folder:'Lore_Lotte_Peter',          agency:'Fangfrisch Berlin',  scene:'s3'},
+  {name:'Louis Wiener',             folder:'Louis_Wiener',              agency:'Fangfrisch Berlin',  scene:'s3'},
+  {name:'Luca St',                  folder:'Luca_St',                   agency:'Splendide Models',   scene:'s3'},
+  {name:'Lucas Avid Hubner',        folder:'Lucas_Avid_Hubner',         agency:'Fangfrisch Berlin',  scene:'s3'},
+  {name:'Luisa-f',                  folder:'Luisa-f',                   agency:'Fangfrisch Berlin',  scene:'s3'},
+  {name:'Luke Schafer',             folder:'Luke_Schafer',              agency:'Fangfrisch Berlin',  scene:'s3'},
+  {name:'Marq',                     folder:'Marq',                      agency:'Smiling Models',     scene:'s3'},
+  {name:'Mathilda Bordfeld',        folder:'Mathilda_Bordfeld',         agency:'Fangfrisch Berlin',  scene:'s3'},
+  {name:'Millicint Hayes',          folder:'Millicint_Hayes',           agency:'Fangfrisch Berlin',  scene:'s3'},
+  {name:'Nazar Zhmuro',             folder:'Nazar_Zhmuro',              agency:'Unknown Agency',     scene:'s3'},
+  {name:'Paula Breuer',             folder:'Paula_Breuer',              agency:'Unknown Agency',     scene:'s3'},
+  {name:'Pit',                      folder:'Pit',                       agency:'Splendide Models',   scene:'s3'},
+  {name:'Sen Br Cker',              folder:'Sen_Br_Cker',               agency:'Unknown Agency',     scene:'s3'},
+  {name:'Viva (4)',                  folder:'viva_serviceagentur_gmbh_(4)',  agency:'Viva Serviceagentur', scene:'s3'},
+  // Szene 4 – Vorgarten
+  {name:'Anna Jensen',              folder:'Anna_Jensen',               agency:'Fangfrisch Berlin',  scene:'s4'},
+  {name:'Beate Funke',              folder:'Beate_Funke',               agency:'Fangfrisch Berlin',  scene:'s4'},
+  {name:'Birgit Von Moller',        folder:'Birgit_Von_Moller',         agency:'Fangfrisch Berlin',  scene:'s4'},
+  {name:'Christopher Schmidt',      folder:'Christopher_Schmidt',       agency:'Fangfrisch Berlin',  scene:'s4'},
+  {name:'Cyrille Eenshuistra',      folder:'Cyrille_Eenshuistra',       agency:'Fangfrisch Berlin',  scene:'s4'},
+  {name:'Gerd Welkisch',            folder:'Gerd_Welkisch',             agency:'Fangfrisch Berlin',  scene:'s4'},
+  {name:'Harald Schindel',          folder:'Harald_Schindel',           agency:'Fangfrisch Berlin',  scene:'s4'},
+  {name:'Ines Bartholomaus',        folder:'Ines_Bartholomaus',         agency:'Fangfrisch Berlin',  scene:'s4'},
+  {name:'Jameela',                  folder:'Jameela',                   agency:'Unknown Agency',     scene:'s4'},
+  {name:'Jasmin',                   folder:'Jasmin',                    agency:'Splendide Models',   scene:'s4'},
+  {name:'Joachim Jasiek',           folder:'Joachim_Jasiek',            agency:'Fangfrisch Berlin',  scene:'s4'},
+  {name:'Jurgen Fath',              folder:'Jurgen_Fath',               agency:'Fangfrisch Berlin',  scene:'s4'},
+  {name:'Monika Stenzel',           folder:'Monika_Stenzel',            agency:'Fangfrisch Berlin',  scene:'s4'},
+  {name:'Otis Hagen',               folder:'Otis_Hagen',                agency:'Fangfrisch Berlin',  scene:'s4'},
+  {name:'Rabia',                    folder:'Rabia',                     agency:'Splendide Models',   scene:'s4'},
+  {name:'Susanne Jo',               folder:'Susanne_Jo',                agency:'Splendide Models',   scene:'s4'},
+  {name:'Viva (6)',                  folder:'viva_serviceagentur_gmbh_(6)',  agency:'Viva Serviceagentur', scene:'s4'},
+];
+
+// ── State ──────────────────────────────────────────────────────────────────
+let stylingData = {};
+
+function load() {
+  try { stylingData = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch(e) { stylingData = {}; }
+}
+
+let saveTimer;
+function schedSave() {
+  clearTimeout(saveTimer);
+  document.getElementById('save-indicator').textContent = 'Wird gespeichert…';
+  saveTimer = setTimeout(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(stylingData));
+    document.getElementById('save-indicator').textContent = 'Gespeichert ✓';
+    updateFilledCount();
+  }, 600);
+}
+
+function updateFilledCount() {
+  const filled = Object.values(stylingData).filter(d => d.groesse && d.groesse !== '').length;
+  document.getElementById('cnt-filled').textContent = filled;
+}
+
+// ── Render ──────────────────────────────────────────────────────────────────
+function render() {
+  const container = document.getElementById('scenes-container');
+  container.innerHTML = '';
+
+  scenes.forEach(sc => {
+    const group = talents.filter(t => t.scene === sc.id);
+    if (!group.length) return;
+
+    const section = document.createElement('div');
+    section.className = 'scene-section';
+
+    section.innerHTML = `
+      <div class="scene-header ${sc.cls}">
+        ${sc.label}
+        <span class="scene-count">${group.length} Talente</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th class="nr">#</th>
+            <th class="col-photo"></th>
+            <th class="col-name">Name</th>
+            <th class="col-agency">Agentur</th>
+            <th class="col-groesse">Tracksuit Größe</th>
+            <th class="col-hose">Hose</th>
+            <th class="col-schuh">Schuhgröße</th>
+            <th class="col-anmerkung">Anmerkung / Besonderheiten</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-${sc.id}"></tbody>
+      </table>
+    `;
+    container.appendChild(section);
+
+    const tbody = section.querySelector(`#tbody-${sc.id}`);
+    group.forEach((t, i) => {
+      const key = t.folder;
+      const d = stylingData[key] || {};
+      const imgSrc = `casting_images/${t.folder}/headshot.jpg`;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="nr">${i + 1}</td>
+        <td class="col-photo">
+          <img class="talent-photo" src="${imgSrc}" alt="${t.name}"
+               onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="talent-photo-placeholder" style="display:none">?</div>
+        </td>
+        <td class="col-name">${t.name}</td>
+        <td class="col-agency">${t.agency}</td>
+        <td class="col-groesse">
+          <select data-key="${key}" data-field="groesse" onchange="handleChange(this)">
+            <option value="">– Größe</option>
+            <option value="XS"  ${d.groesse==='XS'  ?'selected':''}>XS</option>
+            <option value="S"   ${d.groesse==='S'   ?'selected':''}>S</option>
+            <option value="M"   ${d.groesse==='M'   ?'selected':''}>M</option>
+            <option value="L"   ${d.groesse==='L'   ?'selected':''}>L</option>
+            <option value="XL"  ${d.groesse==='XL'  ?'selected':''}>XL</option>
+            <option value="XXL" ${d.groesse==='XXL' ?'selected':''}>XXL</option>
+            <option value="XXXL"${d.groesse==='XXXL'?'selected':''}>XXXL</option>
+          </select>
+        </td>
+        <td class="col-hose">
+          <select data-key="${key}" data-field="hose" onchange="handleChange(this)">
+            <option value="">– Größe</option>
+            <option value="XS"  ${d.hose==='XS'  ?'selected':''}>XS</option>
+            <option value="S"   ${d.hose==='S'   ?'selected':''}>S</option>
+            <option value="M"   ${d.hose==='M'   ?'selected':''}>M</option>
+            <option value="L"   ${d.hose==='L'   ?'selected':''}>L</option>
+            <option value="XL"  ${d.hose==='XL'  ?'selected':''}>XL</option>
+            <option value="XXL" ${d.hose==='XXL' ?'selected':''}>XXL</option>
+            <option value="XXXL"${d.hose==='XXXL'?'selected':''}>XXXL</option>
+          </select>
+        </td>
+        <td class="col-schuh">
+          <input type="text" inputmode="numeric" placeholder="38"
+            data-key="${key}" data-field="schuh"
+            value="${d.schuh || ''}"
+            oninput="handleChange(this)">
+        </td>
+        <td class="col-anmerkung">
+          <input type="text" placeholder="Anmerkungen, Änderungen, Sonstiges…"
+            data-key="${key}" data-field="anmerkung"
+            value="${d.anmerkung || ''}"
+            oninput="handleChange(this)">
+        </td>
+      `;
+      tbody.appendChild(tr);
+
+      // Mark filled fields
+      tr.querySelectorAll('select, input').forEach(el => markFilled(el));
+    });
+  });
+
+  updateFilledCount();
+}
+
+function handleChange(el) {
+  const key   = el.dataset.key;
+  const field = el.dataset.field;
+  if (!stylingData[key]) stylingData[key] = {};
+  stylingData[key][field] = el.value;
+  markFilled(el);
+  schedSave();
+}
+
+function markFilled(el) {
+  el.classList.toggle('filled', !!el.value && el.value !== '');
+}
+
+// ── CSV Export ──────────────────────────────────────────────────────────────
+function exportCSV() {
+  const rows = [['Szene','Name','Agentur','Tracksuit Größe','Hose','Schuhgröße','Anmerkung']];
+  const sceneLabels = {s1:'S1 – Parkplatz',s2:'S2 – Kühlregal',s3:'S3 – Stau',s4:'S4 – Vorgarten'};
+  talents.forEach(t => {
+    const d = stylingData[t.folder] || {};
+    rows.push([
+      sceneLabels[t.scene] || t.scene,
+      t.name,
+      t.agency,
+      d.groesse    || '',
+      d.hose       || '',
+      d.schuh      || '',
+      d.anmerkung  || '',
+    ]);
+  });
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'Styling_Kaufland_Ice_2026.csv';
+  a.click();
+}
+
+// ── Reset ───────────────────────────────────────────────────────────────────
+function resetAll() {
+  if (!confirm('Alle Styling-Daten zurücksetzen?')) return;
+  stylingData = {};
+  localStorage.removeItem(STORAGE_KEY);
+  render();
+  showToast('Zurückgesetzt');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+load();
+render();
+</script>
+</body>
+</html>
